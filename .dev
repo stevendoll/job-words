@@ -1,0 +1,3 @@
+source activate
+
+export FLASK_APP=run.py
