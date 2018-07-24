@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block app_content %}
+
+        <h1>Users</h1>
+
+        <table>
+
+        {% for this_user in users %}
+
+        <tr>
+        	<td>{{ this_user.username }}</td>
+        	<td>{{ this_user.email }}</td>
+        </tr>
+        {% endfor %}
+
+{% endblock %}

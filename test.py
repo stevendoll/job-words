@@ -56,6 +56,12 @@ class UserModelCase(unittest.TestCase):
         user_in_db = db.session.query(User).filter_by(username=username).first()
         self.assertEqual(user_in_db.email, 'john@example.com')
 
+    def test_user_list(self):
+        response = self.client().get('/users', content_type='teml/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('john', str(response.data))
+        self.assertIn('susan@example.com', str(response.data))
+
 
     # def test_create_user(self):
     #     u = User(username='susan')
