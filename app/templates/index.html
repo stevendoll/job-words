@@ -2,6 +2,10 @@
 
 {% block app_content %}
 
-        <h1>Hello, {{ user.username }}!</h1>
+        {% if current_user.is_anonymous %}
+        	<h1>Welcome to jobwords</h1>
+        {% else %}
+			<h1>Hi, {{ current_user.username }}!</h1>
+        {% endif %}
 
 {% endblock %}
