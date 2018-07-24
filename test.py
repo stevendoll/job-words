@@ -1,28 +1,68 @@
 #!/usr/bin/env python
 from datetime import datetime, timedelta
 import unittest
-from app import create_app, db
-from app.models import User, Post
-from config import Config
+from app import app, db
+from config import TestConfig
+
+app.config.from_object(TestConfig)
+
+from app.models import User #, Post
 
 
-class TestConfig(Config):
-    TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite://'
-    ELASTICSEARCH_URL = None
-
-
-class UserModelCase(unittest.TestCase):
+class StartupCase(unittest.TestCase):
     def setUp(self):
-        self.app = create_app(TestConfig)
-        self.app_context = self.app.app_context()
-        self.app_context.push()
-        db.create_all()
+ 
+        self.app = app
+        self.client = self.app.test_client
+
+        with self.app.app_context():
+            db.session.remove()
+            db.drop_all()
+            db.create_all()
 
     def tearDown(self):
         db.session.remove()
         db.drop_all()
-        self.app_context.pop()
+
+    def test_index(self):
+        response = self.client().get('/', content_type='teml/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Job Words', str(response.data))
+
+
+class UserModelCase(unittest.TestCase):
+    def setUp(self):
+
+        self.app = app
+        self.client = self.app.test_client
+
+        with self.app.app_context():
+            db.session.remove()
+            db.drop_all()
+            db.create_all()
+
+        u1 = User(username='john', email='john@example.com')
+        u2 = User(username='susan', email='susan@example.com')
+        db.session.add(u1)
+        db.session.add(u2)
+
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+
+    def test_get_user(self):
+        username = 'john'
+        user_in_db = db.session.query(User).filter_by(username=username).first()
+        self.assertEqual(user_in_db.email, 'john@example.com')
+
+
+    # def test_create_user(self):
+    #     u = User(username='susan')
+        
+
+
+
 
     # def test_password_hashing(self):
     #     u = User(username='susan')
