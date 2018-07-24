@@ -19,6 +19,7 @@
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
                     <li><a href="{{ url_for('index') }}">Home</a></li>
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
                     
                 </ul>
                 <form class="navbar-form navbar-right" method="get" action="{{ url_for('index') }}">
@@ -33,6 +34,18 @@
         </div>
     </nav>
 {% endblock %}
+
+        <hr>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul>
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
 
 {% block content %}
     <div class="container">
