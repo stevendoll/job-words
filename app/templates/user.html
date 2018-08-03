@@ -9,6 +9,7 @@
         {% for this_user in users %}
 
         <tr>
+        	<td><img src="{{ this_user.avatar(128) }}"></td>
         	<td>{{ this_user.username }}</td>
         	<td>{{ this_user.email }}</td>
         </tr>

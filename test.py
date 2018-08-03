@@ -33,7 +33,7 @@ class StartupCase(unittest.TestCase):
         self.assertIn('Job Words', str(response.data))
 
 
-class UserModelCase(unittest.TestCase):
+class UserCase(unittest.TestCase):
     def setUp(self):
 
         app.config['TESTING'] = True
@@ -49,13 +49,14 @@ class UserModelCase(unittest.TestCase):
             db.drop_all()
             db.create_all()
 
+        # registered user
         u1 = User(username='john', email='john@example.com')
         u1.set_password('tiger')
 
         u2 = User(username='susan', email='susan@example.com')
         db.session.add(u1)
         db.session.add(u2)
-        # db.session.commit()
+        db.session.commit()
 
     def tearDown(self):
         db.session.remove()
@@ -83,24 +84,18 @@ class UserModelCase(unittest.TestCase):
 
     def test_login_logout(self):
  
-        u = User(username='frank', email='frank@example.com')
-        u.set_password('monkey')
-        
-        db.session.add(u)
-        db.session.commit()
-
-        response = self.login('frank','monkey')
+        response = self.login('john','tiger')
         response = self.app2.get('/',follow_redirects=True)
 
         self.assertIn('Logout', str(response.data))
-        self.assertIn('Hi, frank', str(response.data))
+        self.assertIn('Hi, john', str(response.data))
 
         response = self.logout()
         self.assertIn('Goodbye', str(response.data)) 
         self.assertIn('Login', str(response.data))
-        self.assertNotIn('Hi, frank', str(response.data))
+        self.assertNotIn('Hi, john', str(response.data))
 
-        response = self.login('frank','notmonkey')
+        response = self.login('john','nottiger')
         self.assertIn('Invalid username or password', str(response.data))
 
     def test_user_list_protected(self):
@@ -110,24 +105,18 @@ class UserModelCase(unittest.TestCase):
         self.assertIn('You should be redirected automatically to target URL: <a href="/login?next=%2Fusers">/login?next=%2Fusers</a>', str(response.data))
 
     def test_user_list(self):
-        u = User(username='frank', email='frank@example.com')
-        u.set_password('monkey')
-        
-        db.session.add(u)
-        db.session.commit()
-
-        response = self.login('frank','monkey')
+        response = self.login('john','tiger')
         response = self.app2.get('/users',follow_redirects=True)
         
         self.assertIn('john', str(response.data))
         self.assertIn('susan@example.com', str(response.data))
 
 
-    # def test_avatar(self):
-    #     u = User(username='john', email='john@example.com')
-    #     self.assertEqual(u.avatar(128), ('https://www.gravatar.com/avatar/'
-    #                                      'd4c74594d841139328695756648b6bd6'
-    #                                      '?d=identicon&s=128'))
+    def test_avatar(self):
+        u = User(username='john', email='john@example.com')
+        self.assertEqual(u.avatar(128), ('https://www.gravatar.com/avatar/'
+                                         'd4c74594d841139328695756648b6bd6'
+                                         '?d=identicon&s=128'))
 
     # def test_follow(self):
     #     u1 = User(username='john', email='john@example.com')
@@ -189,6 +178,85 @@ class UserModelCase(unittest.TestCase):
     #     self.assertEqual(f2, [p2, p3])
     #     self.assertEqual(f3, [p3, p4])
     #     self.assertEqual(f4, [p4])
+
+class PhraseCase(unittest.TestCase):
+    def setUp(self):
+
+        app.config['TESTING'] = True
+        app.config['WTF_CSRF_ENABLED'] = False
+
+        self.app = app
+        self.client = self.app.test_client
+        self.app2 = app.test_client()
+
+
+        with self.app.app_context():
+            db.session.remove()
+            db.drop_all()
+            db.create_all()
+
+        u1 = User(username='john', email='john@example.com')
+        u1.set_password('tiger')
+
+        u2 = User(username='susan', email='susan@example.com')
+        db.session.add(u1)
+        db.session.add(u2)
+        # db.session.commit()
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+
+    def login(self, username, password):
+        return self.app2.post('/login', data=dict(
+            username=username,
+            password=password
+        ), follow_redirects=True)
+
+    def logout(self):
+        return self.app2.get('/logout', follow_redirects=True)
+
+    # def test_login_logout(self):
+ 
+    #     u = User(username='frank', email='frank@example.com')
+    #     u.set_password('monkey')
+        
+    #     db.session.add(u)
+    #     db.session.commit()
+
+    #     response = self.login('frank','monkey')
+    #     response = self.app2.get('/',follow_redirects=True)
+
+    #     self.assertIn('Logout', str(response.data))
+    #     self.assertIn('Hi, frank', str(response.data))
+
+    #     response = self.logout()
+    #     self.assertIn('Goodbye', str(response.data)) 
+    #     self.assertIn('Login', str(response.data))
+    #     self.assertNotIn('Hi, frank', str(response.data))
+
+    #     response = self.login('frank','notmonkey')
+    #     self.assertIn('Invalid username or password', str(response.data))
+
+    # def test_user_list_protected(self):
+    #     response = self.client().get('/users', content_type='teml/text')
+    #     self.assertEqual(response.status_code, 302)
+    #     self.assertNotIn('john', str(response.data))
+    #     self.assertIn('You should be redirected automatically to target URL: <a href="/login?next=%2Fusers">/login?next=%2Fusers</a>', str(response.data))
+
+    # def test_user_list(self):
+    #     u = User(username='frank', email='frank@example.com')
+    #     u.set_password('monkey')
+        
+    #     db.session.add(u)
+    #     db.session.commit()
+
+    #     response = self.login('frank','monkey')
+    #     response = self.app2.get('/users',follow_redirects=True)
+        
+    #     self.assertIn('john', str(response.data))
+    #     self.assertIn('susan@example.com', str(response.data))
+
 
 
 if __name__ == '__main__':
