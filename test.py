@@ -40,8 +40,7 @@ class UserCase(unittest.TestCase):
         app.config['WTF_CSRF_ENABLED'] = False
 
         self.app = app
-        self.client = self.app.test_client
-        self.app2 = app.test_client()
+        self.app.client = app.test_client()
 
 
         with self.app.app_context():
@@ -51,7 +50,7 @@ class UserCase(unittest.TestCase):
 
         # registered user
         u1 = User(username='john', email='john@example.com')
-        u1.set_password('tiger')
+        u1.set_password('johnpassword')
 
         u2 = User(username='susan', email='susan@example.com')
         db.session.add(u1)
@@ -63,13 +62,13 @@ class UserCase(unittest.TestCase):
         db.drop_all()
 
     def login(self, username, password):
-        return self.app2.post('/login', data=dict(
+        return self.app.client.post('/login', data=dict(
             username=username,
             password=password
         ), follow_redirects=True)
 
     def logout(self):
-        return self.app2.get('/logout', follow_redirects=True)
+        return self.app.client.get('/logout', follow_redirects=True)
 
     def test_get_user(self):
         username = 'john'
@@ -84,8 +83,8 @@ class UserCase(unittest.TestCase):
 
     def test_login_logout(self):
  
-        response = self.login('john','tiger')
-        response = self.app2.get('/',follow_redirects=True)
+        self.login('john','johnpassword')
+        response = self.app.client.get('/',follow_redirects=True)
 
         self.assertIn('Logout', str(response.data))
         self.assertIn('Hi, john', str(response.data))
@@ -95,18 +94,23 @@ class UserCase(unittest.TestCase):
         self.assertIn('Login', str(response.data))
         self.assertNotIn('Hi, john', str(response.data))
 
-        response = self.login('john','nottiger')
+        response = self.login('john','notpassword')
         self.assertIn('Invalid username or password', str(response.data))
 
+        self.logout()
+        response = self.login('susan','johnpassword')
+        self.assertIn('Invalid username or password', str(response.data))
+
+
     def test_user_list_protected(self):
-        response = self.client().get('/users', content_type='teml/text')
+        response = self.app.client.get('/users', content_type='teml/text')
         self.assertEqual(response.status_code, 302)
         self.assertNotIn('john', str(response.data))
         self.assertIn('You should be redirected automatically to target URL: <a href="/login?next=%2Fusers">/login?next=%2Fusers</a>', str(response.data))
 
     def test_user_list(self):
-        response = self.login('john','tiger')
-        response = self.app2.get('/users',follow_redirects=True)
+        self.login('john','johnpassword')
+        response = self.app.client.get('/users',follow_redirects=True)
         
         self.assertIn('john', str(response.data))
         self.assertIn('susan@example.com', str(response.data))
