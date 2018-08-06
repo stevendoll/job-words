@@ -1,8 +1,9 @@
-from flask import render_template, flash, redirect, url_for
+from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
+import re
 from app import app, db
 from app.forms import LoginForm, SignupForm
-from app.models import User
+from app.models import User, Phrase
 
 @app.route('/')
 @app.route('/index')
@@ -51,3 +52,28 @@ def user_list():
     
     return render_template('user.html', title='Users', users=users)
 
+@app.route('/search_phrases')
+def phrase_list():
+
+    term = request.args.get('term', '')
+
+    regex = r'[^a-zA-Z\s]'
+    term = re.sub(regex, '', term.lower().strip())
+
+    # try:
+    phrase = Phrase.lookup(term)
+
+    if phrase == None:
+        flash('Something went wrong')
+    elif phrase.search_count == 1:
+        flash('New search phrase! ')
+    else:
+        flash('Searched ' + str(phrase.search_count) + ' times!')
+
+    # except:
+    #     flash('Something went wrong')
+
+
+    phrases = Phrase.get_all()
+    
+    return render_template('phrase.html', title='Search Phrases', phrases=phrases)
