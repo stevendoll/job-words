@@ -19,7 +19,11 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
                 <li><a href="{{ url_for('index') }}">Home</a></li>
-                <li><a href="{{ url_for('phrase_list') }}">Phrases</a></li>                
+                {% if current_user.is_anonymous %}
+                <li><a href="{{ url_for('phrase_list') }}">Phrases</a></li>
+                {% else %}
+                <li><a href="{{ url_for('user_phrase_list', username=current_user.username) }}">My Phrases</a></li>
+                {% endif %}                
 
             </ul>
             <form class="navbar-form navbar-right" method="get" action="{{ url_for('phrase_list') }}">
@@ -30,13 +34,12 @@
             </form>
             <ul class="nav navbar-nav navbar-right">
                 {% if current_user.is_anonymous %}
+                <li><a href="{{ url_for('signup') }}">Sign up</a></li>
                 <li><a href="{{ url_for('login') }}">Login</a></li>
                 {% else %}
                 <li><a href="{{ url_for('logout') }}">Logout</a></li>
                 {% endif %}                
             </ul>
-
-
         </div>
     </div>
 </nav>

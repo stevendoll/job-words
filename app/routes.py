@@ -3,7 +3,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 import re
 from app import app, db
 from app.forms import LoginForm, SignupForm
-from app.models import User, Phrase
+from app.models import User, Phrase, UserPhrase
 
 @app.route('/')
 @app.route('/index')
@@ -52,7 +52,7 @@ def user_list():
     
     return render_template('user.html', title='Users', users=users)
 
-@app.route('/search_phrases')
+@app.route('/phrases')
 def phrase_list():
 
     term = request.args.get('term', '')
@@ -61,7 +61,12 @@ def phrase_list():
     term = re.sub(regex, '', term.lower().strip())
 
     # try:
-    phrase = Phrase.lookup(term)
+    if current_user.is_anonymous:
+        user = None
+    else:
+        user = current_user
+
+    phrase = Phrase.lookup(term, user=user)
 
     if phrase == None:
         flash('Something went wrong')
@@ -73,7 +78,47 @@ def phrase_list():
     # except:
     #     flash('Something went wrong')
 
+    if current_user.is_anonymous:
+        phrases = Phrase.get_all()
 
-    phrases = Phrase.get_all()
+    else:
+        return user_phrase_list(current_user.username)
     
     return render_template('phrase.html', title='Search Phrases', phrases=phrases)
+
+
+@app.route('/users/<username>/phrases')
+def user_phrase_list(username):
+
+    if current_user.is_anonymous or current_user.username != username:
+        flash('Wrong user!')
+        phrases = None
+
+    else:
+        phrases = User.get_by_username(username).phrases
+
+
+
+
+    # term = request.args.get('term', '')
+
+    # regex = r'[^a-zA-Z\s]'
+    # term = re.sub(regex, '', term.lower().strip())
+
+    # # try:
+    # phrase = Phrase.lookup(term)
+
+    # if phrase == None:
+    #     flash('Something went wrong')
+    # elif phrase.search_count == 1:
+    #     flash('New search phrase! ')
+    # else:
+    #     flash('Searched ' + str(phrase.search_count) + ' times!')
+
+    # except:
+    #     flash('Something went wrong')
+
+
+    
+    return render_template('user-phrase.html', title='My Phrases', phrases=phrases)
+
