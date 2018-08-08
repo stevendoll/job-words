@@ -37,7 +37,6 @@ class Phrase(db.Model):
             if user:
                 this_user_phrase = UserPhrase(phrase=this_phrase, user=user)
                 db.session.add(this_user_phrase)
-                print('yes')
 
             db.session.commit()
 

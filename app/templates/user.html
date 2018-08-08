@@ -9,9 +9,8 @@
         {% for this_user in users %}
 
         <tr>
-        	<td><img src="{{ this_user.avatar(128) }}"></td>
-        	<td>{{ this_user.id }}</td>
-        	<td>{{ this_user.username }}</td>
+        	<td><img src="{{ this_user.avatar(64) }}"></td>
+        	<td><a href="{{ url_for('user_phrase_list', username=this_user.username) }}">{{ this_user.username }}</a></td>
         	<td>{{ this_user.email }}</td>
         </tr>
         {% endfor %}

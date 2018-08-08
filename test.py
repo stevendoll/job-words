@@ -120,7 +120,7 @@ class UserCase(unittest.TestCase):
         u = User(username='john', email='john@example.com')
         self.assertEqual(u.avatar(128), ('https://www.gravatar.com/avatar/'
                                          'd4c74594d841139328695756648b6bd6'
-                                         '?d=identicon&s=128'))
+                                         '?d=blank&s=128'))
 
 class PhraseCase(unittest.TestCase):
     def setUp(self):

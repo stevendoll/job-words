@@ -60,65 +60,37 @@ def phrase_list():
     regex = r'[^a-zA-Z\s]'
     term = re.sub(regex, '', term.lower().strip())
 
-    # try:
+
     if current_user.is_anonymous:
         user = None
     else:
         user = current_user
 
-    phrase = Phrase.lookup(term, user=user)
+    if len(term) > 0:
+        phrase = Phrase.lookup(term, user=user)
 
-    if phrase == None:
-        flash('Something went wrong')
-    elif phrase.search_count == 1:
-        flash('New search phrase! ')
-    else:
-        flash('Searched ' + str(phrase.search_count) + ' times!')
+        if phrase == None:
+            flash('Something went wrong')
+        elif phrase.search_count == 1:
+            flash('New search phrase! ')
+        else:
+            flash('Searched ' + str(phrase.search_count) + ' times!')
 
-    # except:
-    #     flash('Something went wrong')
+    phrases = Phrase.get_all()
 
     if current_user.is_anonymous:
-        phrases = Phrase.get_all()
-
+        my_phrases = None
     else:
-        return user_phrase_list(current_user.username)
+        my_phrases = User.get_by_username(current_user.username).phrases
     
-    return render_template('phrase.html', title='Search Phrases', phrases=phrases)
+    return render_template('phrase.html', title='Search Phrases', phrases=phrases, my_phrases=my_phrases)
 
 
 @app.route('/users/<username>/phrases')
+@login_required
 def user_phrase_list(username):
 
-    if current_user.is_anonymous or current_user.username != username:
-        flash('Wrong user!')
-        phrases = None
-
-    else:
-        phrases = User.get_by_username(username).phrases
-
-
-
-
-    # term = request.args.get('term', '')
-
-    # regex = r'[^a-zA-Z\s]'
-    # term = re.sub(regex, '', term.lower().strip())
-
-    # # try:
-    # phrase = Phrase.lookup(term)
-
-    # if phrase == None:
-    #     flash('Something went wrong')
-    # elif phrase.search_count == 1:
-    #     flash('New search phrase! ')
-    # else:
-    #     flash('Searched ' + str(phrase.search_count) + ' times!')
-
-    # except:
-    #     flash('Something went wrong')
-
-
+    phrases = User.get_by_username(username).phrases
     
-    return render_template('user-phrase.html', title='My Phrases', phrases=phrases)
+    return render_template('user-phrase.html', title='User Phrases', phrases=phrases)
 
