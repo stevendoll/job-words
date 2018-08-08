@@ -61,13 +61,11 @@ def phrase_list():
     term = re.sub(regex, '', term.lower().strip())
 
 
-    if current_user.is_anonymous:
-        user = None
-    else:
-        user = current_user
-
     if len(term) > 0:
-        phrase = Phrase.lookup(term, user=user)
+        if current_user.is_anonymous:
+            phrase = Phrase.lookup(term)
+        else:
+            phrase = Phrase.lookup(term, user=current_user)
 
         if phrase == None:
             flash('Something went wrong')
@@ -75,6 +73,7 @@ def phrase_list():
             flash('New search phrase! ')
         else:
             flash('Searched ' + str(phrase.search_count) + ' times!')
+
 
     phrases = Phrase.get_all()
 

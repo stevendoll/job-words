@@ -18,7 +18,7 @@ class Phrase(db.Model):
         return Phrase.query.all()
 
     @staticmethod
-    def lookup(search_phrase, user):
+    def lookup(search_phrase, user=None):
 
         this_phrase = None
 
