@@ -3,7 +3,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 import re
 from app import app, db
 from app.forms import LoginForm, SignupForm
-from app.models import User, Phrase, UserPhrase
+from app.models import User, Phrase, UserPhrase, Finding
 
 @app.route('/')
 @app.route('/index')
@@ -82,7 +82,40 @@ def phrase_list():
     else:
         my_phrases = User.get_by_username(current_user.username).phrases
     
-    return render_template('phrase.html', title='Search Phrases', phrases=phrases, my_phrases=my_phrases)
+    return render_template('phrase-list.html', title='Search Phrases', phrases=phrases, my_phrases=my_phrases)
+
+@app.route('/phrases/<phrase>')
+def phrase_view(phrase):
+
+    # term = request.args.get('term', '')
+
+    # regex = r'[^a-zA-Z\s]'
+    # term = re.sub(regex, '', term.lower().strip())
+
+
+    # if len(term) > 0:
+    #     if current_user.is_anonymous:
+    #         phrase = Phrase.lookup(term)
+    #     else:
+    #         phrase = Phrase.lookup(term, user=current_user)
+
+    #     if phrase == None:
+    #         flash('Something went wrong')
+    #     elif phrase.search_count == 1:
+    #         flash('New search phrase! ')
+    #     else:
+    #         flash('Searched ' + str(phrase.search_count) + ' times!')
+
+
+    phrase = Phrase.get_phrase(phrase.replace('-', ' '))
+
+    # if current_user.is_anonymous:
+    #     my_phrases = None
+    # else:
+    #     my_phrases = User.get_by_username(current_user.username).phrases
+    
+    return render_template('phrase.html', title=phrase.phrase, phrase=phrase)
+
 
 
 @app.route('/users/<username>/phrases')

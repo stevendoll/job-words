@@ -2,54 +2,35 @@
 
 {% block app_content %}
 
-<h1>All Phrases</h1>
+{% if phrase %}
 
-{% if phrases %}
+<h1>{{ phrase.phrase }}</h1>
 
-<table>
-
-	{% for this_phrase in phrases %}
-
-	<tr>
-		<td>{{ this_phrase.phrase }} </td>
-		<td>{{ this_phrase.search_count }} </td>
-		<td>{{ this_phrase.created_date }} </td>
-		<td>{{ this_phrase.updated_date }} </td>
-	</tr>
-	{% endfor %}
-</table>
-{% else %}
-<p>There are no search phrases</p>
-
-{% endif %}
-
-{% if current_user.is_anonymous %}
-
-<p>
-<p>Sign up to save your own search phrases</p>
-
-{% else %}
-
-<h2>My Phrases</h2>
-
-{% if my_phrases %}
+{% if phrase.findings %}
 
 <table>
 
-	{% for this_phrase in my_phrases %}
+	{% for this_finding in phrase.findings %}
 
 	<tr>
-		<td>{{ this_phrase.phrase.phrase }} </td>
-		<td>{{ this_phrase.phrase.search_count }} </td>
-		<td>{{ this_phrase.phrase.created_date }} </td>
-		<td>{{ this_phrase.phrase.updated_date }} </td>
+		<td>{{ this_finding.indeed_content }} </td>
+		<td>{{ this_finding.created_date }} </td>
+		<td>{{ this_finding.updated_date }} </td>
 	</tr>
 	{% endfor %}
+
 </table>
+
 {% else %}
-<p>You have no search phrases</p>
+
+<p>There are no search findings</p>
 
 {% endif %}
+
+{% else %}
+<p>Not found</p>
+
 {% endif %}
+
 
 {% endblock %}

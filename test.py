@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-from datetime import datetime, timedelta
+import datetime as dt
+from datetime import timedelta
 import unittest
 from app import app, db
 from config import TestConfig
@@ -9,7 +10,7 @@ from config import basedir
 
 app.config.from_object(TestConfig)
 
-from app.models import User, Phrase, UserPhrase
+from app.models import User, Phrase, UserPhrase, Finding
 
 
 class StartupCase(unittest.TestCase):
@@ -146,9 +147,14 @@ class PhraseCase(unittest.TestCase):
         phrase_in_db = db.session.query(Phrase).filter_by(phrase=phrase).first()
         self.assertEqual(phrase_in_db.phrase, phrase)
 
-    def test_view_phrase(self):
+    def test_view_phrase_in_list(self):
         # not authenticated
         response = self.app.client.get('/phrases', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('project manager', str(response.data))
+
+    def test_view_phrase(self):
+        response = self.app.client.get('/phrases/project-manager', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn('project manager', str(response.data))
 
@@ -279,6 +285,117 @@ class UserPhraseCase(unittest.TestCase):
         response = self.app.client.get('/users/john/phrases', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn(term, str(response.data))
+
+
+class FindingCase(unittest.TestCase):
+    def setUp(self):
+        UserCase.setUp(self)
+
+        # create phrases
+        p1 = Phrase(phrase='project manager')
+        p2 = Phrase(phrase='nurse')
+        p3 = Phrase(phrase='engineer')
+        db.session.add_all([p1, p2, p3])
+
+        # create findings
+        f1 = Finding(phrase=p1, indeed_content='indeed results for _project_manager_', created_date=dt.datetime(2018,4,1,0,0,0))
+        f2 = Finding(phrase=p3, indeed_content='indeed results for _engineer_')
+        f3 = Finding(phrase=p3, indeed_content='indeed second results for _engineer_')
+        db.session.add_all([f1, f2, f3])
+        db.session.commit()
+
+
+    def tearDown(self):
+        UserCase.tearDown(self)
+
+    def login(self, username, password):
+        return UserCase.login(self, username, password)
+
+    def logout(self):
+        return UserCase.logout(self)
+
+    def test_get_finding(self):
+        # search phrase
+        phrase_in_db = db.session.query(Phrase).filter_by(phrase='engineer').first()
+        finding_in_db = db.session.query(Finding).filter_by(phrase_id=phrase_in_db.id).first()
+        self.assertNotEqual(finding_in_db, None)
+
+    def test_view_finding(self):
+        response = self.app.client.get('/phrases/project-manager', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('indeed results for _project_manager_', str(response.data))
+
+    def test_no_findings(self):
+        response = self.app.client.get('/phrases/nurse', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('indeed results for _project_manager_', str(response.data))
+        self.assertIn('no search findings', str(response.data))
+
+    def test_dont_search_indeed_if_recent_finding_exists(self):
+        
+        # count findings
+        initial_finding_count = db.session.query(Finding).count()
+
+        # search term already in db and count findings
+        term = 'engineer'
+        response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
+        second_finding_count = db.session.query(Finding).count()
+        self.assertEqual(initial_finding_count, second_finding_count)
+
+        # search new term and count findings
+        term = 'mechanic'
+        response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
+        third_finding_count = db.session.query(Finding).count()
+        self.assertEqual(second_finding_count + 1, third_finding_count)
+
+        # search term again and count findings
+        response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
+        fourth_finding_count = db.session.query(Finding).count()
+        self.assertEqual(third_finding_count, fourth_finding_count)
+        
+        # search old term already in db and count findings
+        term = 'project manager'
+        phrase = db.session.query(Phrase).filter_by(phrase=term).first()
+        fifth_finding_count = db.session.query(Finding).filter_by(phrase=phrase).count()
+        self.assertEqual(fifth_finding_count, 1)
+        response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
+        sixth_finding_count = db.session.query(Finding).filter_by(phrase=phrase).count()
+        self.assertEqual(sixth_finding_count, 2)
+        # count again, should have searched
+        # response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
+
+
+        # count again, should not have searched
+
+        # self.assertEqual(response.status_code, 200)
+        # self.assertNotIn('indeed results for _project_manager_', str(response.data))
+        # self.assertIn('no search findings', str(response.data))
+
+
+    # def test_create_user_phrase(self):
+    #     # not authenticated
+    #     response = self.app.client.get('/users', content_type='teml/text')
+    #     self.assertEqual(response.status_code, 302)
+    #     self.assertNotIn('john', str(response.data))
+    #     self.assertIn('You should be redirected automatically to target URL: <a href="/login?next=%2Fusers">/login?next=%2Fusers</a>', str(response.data))
+
+    #     # authenticated
+    #     self.login('john','johnpassword')
+    #     response = self.app.client.get('/users',follow_redirects=True)
+        
+    #     self.assertIn('john', str(response.data))
+    #     self.assertIn('susan@example.com', str(response.data))
+
+    #     term = 'fortran'
+
+    #     response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertIn('New search phrase!', str(response.data))
+    #     self.assertIn(term, str(response.data))
+
+    #     response = self.app.client.get('/users/john/phrases', content_type='html/text')
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertIn(term, str(response.data))
 
 
 

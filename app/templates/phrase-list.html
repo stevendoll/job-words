@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block app_content %}
+
+<h1>All Phrases</h1>
+
+{% if phrases %}
+
+<table>
+
+	{% for this_phrase in phrases %}
+
+	<tr>
+		<td><a href="{{ url_for('phrase_view', phrase=this_phrase.phrase) }}">{{ this_phrase.phrase }}</a></td>
+		<td>{{ this_phrase.phrase }} </td>
+		<td>{{ this_phrase.search_count }} </td>
+		<td>{{ this_phrase.created_date }} </td>
+		<td>{{ this_phrase.updated_date }} </td>
+	</tr>
+	{% endfor %}
+</table>
+{% else %}
+<p>There are no search phrases</p>
+
+{% endif %}
+
+{% if current_user.is_anonymous %}
+
+<p>
+<p>Sign up to save your own search phrases</p>
+
+{% else %}
+
+<h2>My Phrases</h2>
+
+{% if my_phrases %}
+
+<table>
+
+	{% for this_phrase in my_phrases %}
+
+	<tr>
+		<td><a href="{{ url_for('phrase_view', phrase=this_phrase.phrase.phrase.replace(' ', '-')) }}">{{ this_phrase.phrase.phrase }}</a></td>
+		<td>{{ this_phrase.phrase.search_count }} </td>
+		<td>{{ this_phrase.phrase.created_date }} </td>
+		<td>{{ this_phrase.phrase.updated_date }} </td>
+	</tr>
+	{% endfor %}
+</table>
+{% else %}
+<p>You have no search phrases</p>
+
+{% endif %}
+{% endif %}
+
+{% endblock %}
