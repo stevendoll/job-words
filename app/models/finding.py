@@ -5,6 +5,8 @@ from flask import flash
 import datetime as dt
 from datetime import timedelta
 import re
+import pandas as pd
+import numpy as np
 
 
 from app import db, login
@@ -49,6 +51,8 @@ class Finding(db.Model):
 
         job_summary = Finding.calculate_jobs_at_salary_levels(this_finding.indeed_content)
 
+        print(job_summary)
+
         return this_finding
 
     @staticmethod
@@ -62,8 +66,6 @@ class Finding(db.Model):
 
             r = requests.get(url, headers=INDEED_HEADERS)
 
-            # doc = lxml.html.fromstring(r.content)
-
             indeed_content = r.content
 
         except:
@@ -76,8 +78,10 @@ class Finding(db.Model):
     @staticmethod
     def calculate_jobs_at_salary_levels(indeed_content):
 
-        salaries = re.compile(r'\$(\d+)')
-        positions = re.compile(r'\((\d+)\)')
+        get_salary = re.compile(r'\$(\d+)')
+        get_job = re.compile(r'\((\d+)\)')
+ 
+        df = pd.DataFrame(columns=['min_salary', 'jobs'])
 
         doc = lxml.html.fromstring(indeed_content)
 
@@ -85,10 +89,21 @@ class Finding(db.Model):
 
             for i in range(0,len(doc.cssselect('#SALARY_rbo ul li'))):
 
-                salary_row = doc.cssselect('#SALARY_rbo ul li')[i].text_content().strip().replace(',','')
+                row = doc.cssselect('#SALARY_rbo ul li')[i].text_content().strip().replace(',','')
+                df = df.append({'min_salary': int(get_salary.findall(row)[0]), 'jobs': int(get_job.findall(row)[0])}, ignore_index=True)
 
-                print(salaries.findall(salary_row)[0])
-                print(positions.findall(salary_row)[0])
+        # get salary as center of range, not floor
+        df['salary'] = (df.min_salary + df.min_salary.shift(-1))/2
+        df.loc[df.salary.isnull(), 'salary'] = df.min_salary * 1.15
 
-        return indeed_content
+        market = []
+
+        for index, row in df.iterrows():
+            market += [row['salary']] * row['jobs']
+
+        market = pd.Series(market)
+
+        print('market mean', market.mean())
+
+        return df
  
