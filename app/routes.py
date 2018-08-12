@@ -114,7 +114,7 @@ def phrase_view(phrase):
     # else:
     #     my_phrases = User.get_by_username(current_user.username).phrases
     
-    return render_template('phrase.html', title=phrase.phrase, phrase=phrase)
+    return render_template('phrase.html', title='phrase.phrase', phrase=phrase)
 
 
 

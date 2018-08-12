@@ -10,12 +10,68 @@
 
 <table>
 
+	<tr>
+		<th>Indeed</th>
+		<th>Created</th>
+		<th>Updated</th>
+		<th>Mean Salary</th>
+		<th>Salary Sth</th>
+		<th>Jobs</th>
+		<th>Jobs above $50k</th>
+		<th>Jobs above $55k</th>
+		<th>Jobs above $60k</th>
+		<th>Jobs above $65k</th>
+		<th>Jobs above $70k</th>
+		<th>Jobs above $75k</th>
+		<th>Jobs above $80k</th>
+		<th>Jobs above $85k</th>
+		<th>Jobs above $90k</th>
+		<th>Jobs above $95k</th>
+		<th>Jobs above $100k</th>
+		<th>Jobs above $105k</th>
+		<th>Jobs above $110k</th>
+		<th>Jobs above $115k</th>
+		<th>Jobs above $120k</th>
+		<th>Jobs above $125k</th>
+		<th>Jobs above $130k</th>
+		<th>Jobs above $135k</th>
+		<th>Jobs above $140k</th>
+		<th>Jobs above $145k</th>
+		<th>Jobs above $150k</th>
+
+	</tr>
+
 	{% for this_finding in phrase.findings %}
 
 	<tr>
-		<td>{{ this_finding.indeed_content }} </td>
+		<td>{{ this_finding.indeed_content[0:50] if this_finding.indeed_content }} </td>
 		<td>{{ this_finding.created_date }} </td>
 		<td>{{ this_finding.updated_date }} </td>
+		<td>{{ this_finding.mean_salary }} </td>
+		<td>{{ this_finding.sigma_salary }} </td>
+		<td>{{ this_finding.jobs_count }} </td>
+		<td>{{ this_finding.jobs_above_50k_count }} </td>
+		<td>{{ this_finding.jobs_above_55k_count }} </td>
+		<td>{{ this_finding.jobs_above_60k_count }} </td>
+		<td>{{ this_finding.jobs_above_65k_count }} </td>
+		<td>{{ this_finding.jobs_above_70k_count }} </td>
+		<td>{{ this_finding.jobs_above_75k_count }} </td>
+		<td>{{ this_finding.jobs_above_80k_count }} </td>
+		<td>{{ this_finding.jobs_above_85k_count }} </td>
+		<td>{{ this_finding.jobs_above_90k_count }} </td>
+		<td>{{ this_finding.jobs_above_95k_count }} </td>
+		<td>{{ this_finding.jobs_above_100k_count }} </td>
+		<td>{{ this_finding.jobs_above_105k_count }} </td>
+		<td>{{ this_finding.jobs_above_110k_count }} </td>
+		<td>{{ this_finding.jobs_above_115k_count }} </td>
+		<td>{{ this_finding.jobs_above_120k_count }} </td>
+		<td>{{ this_finding.jobs_above_125k_count }} </td>
+		<td>{{ this_finding.jobs_above_130k_count }} </td>
+		<td>{{ this_finding.jobs_above_135k_count }} </td>
+		<td>{{ this_finding.jobs_above_140k_count }} </td>
+		<td>{{ this_finding.jobs_above_145k_count }} </td>
+		<td>{{ this_finding.jobs_above_150k_count }} </td>
+
 	</tr>
 	{% endfor %}
 

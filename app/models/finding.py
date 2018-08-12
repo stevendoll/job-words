@@ -7,6 +7,8 @@ from datetime import timedelta
 import re
 import pandas as pd
 import numpy as np
+import scipy.stats as stats
+
 
 
 from app import db, login
@@ -23,6 +25,31 @@ class Finding(db.Model):
     created_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     phrase = db.relationship('Phrase')
     indeed_content = db.Column(db.Text())
+    mean_salary = db.Column(db.Float)
+    sigma_salary = db.Column(db.Float)
+    jobs_count = db.Column(db.Float)
+    # normality_p_value = db.Column(db.Float)
+    jobs_above_50k_count = db.Column(db.Float)
+    jobs_above_55k_count = db.Column(db.Float)
+    jobs_above_60k_count = db.Column(db.Float)
+    jobs_above_65k_count = db.Column(db.Float)
+    jobs_above_70k_count = db.Column(db.Float)
+    jobs_above_75k_count = db.Column(db.Float)
+    jobs_above_80k_count = db.Column(db.Float)
+    jobs_above_85k_count = db.Column(db.Float)
+    jobs_above_90k_count = db.Column(db.Float)
+    jobs_above_95k_count = db.Column(db.Float)
+    jobs_above_100k_count = db.Column(db.Float)
+    jobs_above_105k_count = db.Column(db.Float)
+    jobs_above_110k_count = db.Column(db.Float)
+    jobs_above_115k_count = db.Column(db.Float)
+    jobs_above_120k_count = db.Column(db.Float)
+    jobs_above_125k_count = db.Column(db.Float)
+    jobs_above_130k_count = db.Column(db.Float)
+    jobs_above_135k_count = db.Column(db.Float)
+    jobs_above_140k_count = db.Column(db.Float)
+    jobs_above_145k_count = db.Column(db.Float)
+    jobs_above_150k_count = db.Column(db.Float)
 
     def __repr__(self):
         return '<Finding {}>'.format(self.phrase.phrase)
@@ -47,18 +74,48 @@ class Finding(db.Model):
                 indeed_content=indeed_content)
 
             db.session.add(this_finding)
-            db.session.commit()
 
-        job_summary = Finding.calculate_jobs_at_salary_levels(this_finding.indeed_content)
+        if this_finding.indeed_content:
 
-        print(job_summary)
+            # perform analysis of indeed jobs histogram
+            job_market = Finding.calculate_jobs_at_salary_levels(this_finding.indeed_content)
+
+            # print(job_market)
+
+            this_finding.mean_salary = job_market['mean_salary']
+            this_finding.sigma_salary = job_market['sigma_salary']
+            this_finding.jobs_count = job_market['jobs_count']
+            this_finding.jobs_above_50k_count = job_market['jobs_above_50k_count']
+            this_finding.jobs_above_55k_count = job_market['jobs_above_55k_count']
+            this_finding.jobs_above_60k_count = job_market['jobs_above_60k_count']
+            this_finding.jobs_above_65k_count = job_market['jobs_above_65k_count']
+            this_finding.jobs_above_70k_count = job_market['jobs_above_70k_count']
+            this_finding.jobs_above_75k_count = job_market['jobs_above_75k_count']
+            this_finding.jobs_above_80k_count = job_market['jobs_above_80k_count']
+            this_finding.jobs_above_85k_count = job_market['jobs_above_85k_count']
+            this_finding.jobs_above_90k_count = job_market['jobs_above_90k_count']
+            this_finding.jobs_above_95k_count = job_market['jobs_above_95k_count']
+            this_finding.jobs_above_100k_count = job_market['jobs_above_100k_count']
+            this_finding.jobs_above_105k_count = job_market['jobs_above_105k_count']
+            this_finding.jobs_above_110k_count = job_market['jobs_above_110k_count']
+            this_finding.jobs_above_115k_count = job_market['jobs_above_115k_count']
+            this_finding.jobs_above_120k_count = job_market['jobs_above_120k_count']
+            this_finding.jobs_above_125k_count = job_market['jobs_above_125k_count']
+            this_finding.jobs_above_130k_count = job_market['jobs_above_130k_count']
+            this_finding.jobs_above_135k_count = job_market['jobs_above_135k_count']
+            this_finding.jobs_above_140k_count = job_market['jobs_above_140k_count']
+            this_finding.jobs_above_145k_count = job_market['jobs_above_145k_count']
+            this_finding.jobs_above_150k_count = job_market['jobs_above_150k_count']
+
+        db.session.commit()
+
 
         return this_finding
 
     @staticmethod
     def retrieve_indeed_search_result(search_phrase):
         
-        url = ''.join([INDEED_SEARCH_URL, str(search_phrase.replace(' ','+')), INDEED_SEARCH_SUFFIX])
+        url = ''.join([INDEED_SEARCH_URL, str(search_phrase.replace(' ','+'))])
 
         indeed_content = None
 
@@ -103,7 +160,23 @@ class Finding(db.Model):
 
         market = pd.Series(market)
 
-        print('market mean', market.mean())
+        result = {}
+        result['mean_salary'] = market.mean()
+        result['sigma_salary'] = market.std()
+        result['jobs_count'] = market.count()
+        result['chi_squared'], result['normality_p_value'] = stats.normaltest(market)
 
-        return df
+        for i in range(50, 155, 5):
+            result['jobs_above_' + str(i) + 'k_count'] = (1-stats.norm.cdf(i*1000, loc=market.mean(), scale=market.std()))*market.count()
+
+        # print(result)
+
+        # alpha = 1e-3
+        # print("p = {:g}".format(result['normality_p_value']))
+        # if result['normality_p_value'] < alpha:  # null hypothesis: x comes from a normal distribution
+        #     print("The null hypothesis can be rejected")
+        # else:
+        #     print("The null hypothesis cannot be rejected")
+
+        return result
  

@@ -298,9 +298,9 @@ class FindingCase(unittest.TestCase):
         db.session.add_all([p1, p2, p3])
 
         # create findings
-        f1 = Finding(phrase=p1, indeed_content='indeed results for _project_manager_', created_date=dt.datetime(2018,4,1,0,0,0))
-        f2 = Finding(phrase=p3, indeed_content='indeed results for _engineer_')
-        f3 = Finding(phrase=p3, indeed_content='indeed second results for _engineer_')
+        f1 = Finding(phrase=p1, created_date=dt.datetime(2018,4,1,0,0,0))
+        f2 = Finding(phrase=p3)
+        f3 = Finding(phrase=p3)
         db.session.add_all([f1, f2, f3])
         db.session.commit()
 
@@ -323,7 +323,7 @@ class FindingCase(unittest.TestCase):
     def test_view_finding(self):
         response = self.app.client.get('/phrases/project-manager', content_type='html/text')
         self.assertEqual(response.status_code, 200)
-        self.assertIn('indeed results for _project_manager_', str(response.data))
+        # self.assertIn('indeed results for _project_manager_', str(response.data))
 
     def test_no_findings(self):
         response = self.app.client.get('/phrases/nurse', content_type='html/text')
@@ -361,17 +361,16 @@ class FindingCase(unittest.TestCase):
         response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
         sixth_finding_count = db.session.query(Finding).filter_by(phrase=phrase).count()
         self.assertEqual(sixth_finding_count, 2)
-        # count again, should have searched
-        # response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
 
+    def test_view_finding_analysis(self):
+        term = 'excel'
+        response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
+        response = self.app.client.get('/phrases/' + term, content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Mean Salary', str(response.data))
+        self.assertIn('Jobs above $100k', str(response.data))
 
-        # count again, should not have searched
-
-        # self.assertEqual(response.status_code, 200)
-        # self.assertNotIn('indeed results for _project_manager_', str(response.data))
-        # self.assertIn('no search findings', str(response.data))
-
-
+ 
     # def test_create_user_phrase(self):
     #     # not authenticated
     #     response = self.app.client.get('/users', content_type='teml/text')
