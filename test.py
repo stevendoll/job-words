@@ -389,6 +389,12 @@ class DocumentCase(unittest.TestCase):
     def logout(self):
         return UserCase.logout(self)
 
+    def create_document(self, title, body):
+        return self.app.client.post('/documents', data=dict(
+            title=title,
+            body=body
+        ), follow_redirects=True)
+
     def test_get_document(self):
         # search phrase
         title = 'my resume'
@@ -400,6 +406,15 @@ class DocumentCase(unittest.TestCase):
         response = self.app.client.get('/documents', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn('my resume', str(response.data))
+
+    def test_create_document(self):
+        title = 'john resume'
+        body = 'john body'
+        self.create_document(title, body)
+        response = self.app.client.get('/documents', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('john resume', str(response.data))
+
 
     # def test_view_document(self):
     #     title = 'my resume'
@@ -495,6 +510,9 @@ class UserDocumentCase(unittest.TestCase):
     def logout(self):
         return UserCase.logout(self)
 
+    def create_document(self, title, body):
+        return DocumentCase.create_document(self, title, body)
+
     def test_get_user_document(self):
         # search phrase
         user_in_db = db.session.query(User).filter_by(username='jack').first()
@@ -511,6 +529,18 @@ class UserDocumentCase(unittest.TestCase):
         self.assertIn('mary linkedin', str(response.data))
         self.assertIn('mary resume', str(response.data))
 
+    def test_create_user_document(self):
+        self.login('mary','marypassword')
+        response = self.app.client.get('/users/mary/documents', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('mary resume', str(response.data))
+
+        title = 'mary cv'
+        body = 'mary new body'
+        self.create_document(title, body)
+        response = self.app.client.get('/users/mary/documents', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('mary cv', str(response.data))
     # def test_create_user_phrase(self):
     #     # not authenticated
     #     response = self.app.client.get('/users', content_type='teml/text')

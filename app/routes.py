@@ -2,8 +2,8 @@ from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
 import re
 from app import app, db
-from app.forms import LoginForm, SignupForm
-from app.models import User, Phrase, UserPhrase, Finding, Document
+from app.forms import LoginForm, SignupForm, DocumentForm
+from app.models import User, Phrase, UserPhrase, Finding, Document, UserDocument
 
 @app.route('/')
 @app.route('/index')
@@ -102,12 +102,29 @@ def user_phrase_list(username):
     return render_template('user-phrase.html', title='User Phrases', phrases=phrases)
 
 
-@app.route('/documents')
+@app.route('/documents', methods=['GET', 'POST'])
 def document_list():
+
+    form = DocumentForm()
+    if form.validate_on_submit():
+        document = Document(title=form.title.data, body=form.body.data)
+        db.session.add(document)
+
+        if current_user.is_authenticated:
+            user_document = UserDocument(user=current_user, document=document)
+            db.session.add(user_document)
+
+        db.session.commit()
+        flash('Document added!')
 
     documents = Document.get_all()
     
     return render_template('document-list.html', title='All documents', documents=documents)
+
+@app.route('/documents/new')
+def create_document():
+    form = DocumentForm()
+    return render_template('document-form.html', title='Create document', form=form)
 
 
 @app.route('/users/<username>/documents')

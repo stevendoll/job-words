@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
 from app.models import User
 
@@ -27,3 +27,11 @@ class SignupForm(FlaskForm):
         user = User.query.filter_by(email=email.data).first()
         if user is not None:
             raise ValidationError('Please use a different email address.')
+
+
+class DocumentForm(FlaskForm):
+    title = StringField('Title', validators=[DataRequired()])
+    body = TextAreaField('Body', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+
