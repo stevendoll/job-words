@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block app_content %}
+
+<h1>All Documents</h1>
+
+{% if documents %}
+
+<table>
+
+	{% for this_document in documents %}
+
+	<tr>
+		<td>{{ this_document.title }} </td>
+		<td>{{ this_document.body }} </td>
+		<td>{{ this_document.created_date }} </td>
+		<td>{{ this_document.updated_date }} </td>
+	</tr>
+	{% endfor %}
+</table>
+{% else %}
+<p>There are no documents</p>
+
+{% endif %}
+
+{% if current_user.is_anonymous %}
+
+<p>
+<p>Sign up to save your own documents</p>
+
+{% endif %}
+
+{% endblock %}

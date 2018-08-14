@@ -10,7 +10,7 @@ from config import basedir
 
 app.config.from_object(TestConfig)
 
-from app.models import User, Phrase, UserPhrase, Finding
+from app.models import User, Phrase, UserPhrase, Finding, Document, UserDocument
 
 
 class StartupCase(unittest.TestCase):
@@ -371,6 +371,146 @@ class FindingCase(unittest.TestCase):
         self.assertIn('Jobs above $100k', str(response.data))
 
  
+class DocumentCase(unittest.TestCase):
+    def setUp(self):
+        UserCase.setUp(self)
+
+        # search phrase
+        d1 = Document(title='my resume')
+        db.session.add(d1)
+        db.session.commit()
+
+    def tearDown(self):
+        UserCase.tearDown(self)
+
+    def login(self, username, password):
+        return UserCase.login(self, username, password)
+
+    def logout(self):
+        return UserCase.logout(self)
+
+    def test_get_document(self):
+        # search phrase
+        title = 'my resume'
+        document_in_db = db.session.query(Document).filter_by(title=title).first()
+        self.assertEqual(document_in_db.title, title)
+
+    def test_view_document_in_list(self):
+        # not authenticated
+        response = self.app.client.get('/documents', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('my resume', str(response.data))
+
+    # def test_view_document(self):
+    #     title = 'my resume'
+    #     document_in_db = db.session.query(Document).filter_by(title=title).first()
+    #     response = self.app.client.get('/documents/' + str(document_in_db.id), content_type='html/text')
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertIn('my resume', str(response.data))
+
+    # def test_create_document(self):
+    #     # phrase not found, should create
+    #     term = 'linux'
+
+    #     response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertIn('New search phrase!', str(response.data))
+    #     self.assertIn(term, str(response.data))
+
+    #     term = 'Accountant' # lowercase
+
+    #     response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertIn('New search phrase!', str(response.data))
+    #     self.assertNotIn(term, str(response.data))
+    #     self.assertIn(term.lower(), str(response.data))
+
+    #     term = 'project management' # keep spaces
+
+    #     response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertIn('New search phrase!', str(response.data))
+    #     self.assertIn(term, str(response.data))
+
+    #     term = ' mechanical engineer ' # trim
+
+    #     response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertIn('New search phrase!', str(response.data))
+    #     self.assertNotIn(' mechanical engineer ', str(response.data))
+
+
+    # def test_update_phrase(self):
+    #     # if already exists, don't create a new one, instead update counter and date
+    #     term = 'linux'
+
+    #     response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertIn(term, str(response.data))
+
+    #     response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertIn('Searched 2 times!', str(response.data))
+    #     self.assertIn(term, str(response.data))
+
+    #     term_with_junk = ' LINUX$$ ' # trim
+
+    #     response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertIn('Searched 3 times!', str(response.data))
+    #     self.assertIn(term, str(response.data))
+    #     self.assertNotIn(term_with_junk, str(response.data))
+
+
+class UserDocumentCase(unittest.TestCase):
+    def setUp(self):
+        UserCase.setUp(self)
+
+        # create users
+        u1 = User(username='jack', email='jack@example.com')
+        u2 = User(username='mary', email='mary@example.com')
+        u2.set_password('marypassword')
+        db.session.add_all([u1, u2])
+
+        # create phrases
+        d1 = Document(title='jack resume')
+        d2 = Document(title='mary linkedin')
+        d3 = Document(title='mary resume')
+        db.session.add_all([d1, d2, d3])
+
+        # create user phrases
+        ud1 = UserDocument(user=u1, document=d1)
+        ud2 = UserDocument(user=u2, document=d2)
+        ud3 = UserDocument(user=u2, document=d3)
+        db.session.add_all([ud1, ud2, ud3])
+        db.session.commit()
+
+
+    def tearDown(self):
+        UserCase.tearDown(self)
+
+    def login(self, username, password):
+        return UserCase.login(self, username, password)
+
+    def logout(self):
+        return UserCase.logout(self)
+
+    def test_get_user_document(self):
+        # search phrase
+        user_in_db = db.session.query(User).filter_by(username='jack').first()
+        document_in_db = db.session.query(Document).filter_by(title='jack resume').first()
+        user_document_in_db = db.session.query(UserDocument).filter_by(document_id=document_in_db.id, user_id=user_in_db.id).first()
+        self.assertEqual(user_document_in_db.user_id, user_in_db.id)
+
+    def test_view_user_document(self):
+        # authenticated
+        self.login('mary','marypassword')
+        response = self.app.client.get('/users/mary/documents', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('jack resume', str(response.data))
+        self.assertIn('mary linkedin', str(response.data))
+        self.assertIn('mary resume', str(response.data))
+
     # def test_create_user_phrase(self):
     #     # not authenticated
     #     response = self.app.client.get('/users', content_type='teml/text')
@@ -395,7 +535,6 @@ class FindingCase(unittest.TestCase):
     #     response = self.app.client.get('/users/john/phrases', content_type='html/text')
     #     self.assertEqual(response.status_code, 200)
     #     self.assertIn(term, str(response.data))
-
 
 
 if __name__ == '__main__':

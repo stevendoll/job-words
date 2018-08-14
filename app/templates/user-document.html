@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block app_content %}
+
+        <h1>My Documents</h1>
+
+        {% if documents %}
+
+        <table>
+
+        {% for this_document in documents %}
+
+        <tr>
+        	<td>{{ this_document.document.title }} </td>
+            <td>{{ this_document.document.body }} </td>
+        	<td>{{ this_document.document.created_date }} </td>
+        	<td>{{ this_document.document.updated_date }} </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>You have no search documents</p>
+
+    {% endif %}
+
+{% endblock %}

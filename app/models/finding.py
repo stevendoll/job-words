@@ -155,6 +155,7 @@ class Finding(db.Model):
 
         market = []
 
+        # generate the job market with a row for each job at each salary
         for index, row in df.iterrows():
             market += [row['salary']] * row['jobs']
 
@@ -164,7 +165,7 @@ class Finding(db.Model):
         result['mean_salary'] = market.mean()
         result['sigma_salary'] = market.std()
         result['jobs_count'] = market.count()
-        result['chi_squared'], result['normality_p_value'] = stats.normaltest(market)
+        # result['chi_squared'], result['normality_p_value'] = stats.normaltest(market)
 
         for i in range(50, 155, 5):
             result['jobs_above_' + str(i) + 'k_count'] = (1-stats.norm.cdf(i*1000, loc=market.mean(), scale=market.std()))*market.count()

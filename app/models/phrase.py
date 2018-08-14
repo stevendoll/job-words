@@ -39,12 +39,8 @@ class Phrase(db.Model):
                 this_user_phrase = UserPhrase(phrase=this_phrase, user=user)
                 db.session.add(this_user_phrase)
 
-            # if not this_phrase.findings or this_phrase.findings.created_date.max() > '2018-01-01':
-                # print('no findings')
+            # scrape indeed and analyze
             Finding.analyze(this_phrase)
-
-            # if this_phrase.findings:
-                # print('has findings')
 
             db.session.commit()
 
