@@ -1,6 +1,11 @@
-from app import db, login
+from flask import flash
+from textblob import TextBlob, Word
 from sqlalchemy.sql import func
+
+from app import db, login
 from app.models.userdocument import UserDocument
+from app.models.finding import Finding
+from app.models.phrase import Phrase
 
 class Document(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -10,6 +15,20 @@ class Document(db.Model):
     created_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_date = db.Column(db.DateTime(timezone=True), onupdate=func.now())
 
+    
+    def analyze(self):
+        
+        user_document = db.session.query(UserDocument).filter_by(document=self).first()
+
+        if user_document:
+            user = user_document.user
+        else:
+            user = None
+
+        for phrase in self.document_phrases:
+            Phrase.lookup(phrase.phrase, user=user)
+        
+
     def __repr__(self):
         return '<Document {}>'.format(self.document)
 
@@ -17,38 +36,37 @@ class Document(db.Model):
     def get_all():
         return Document.query.all()
 
-    # @staticmethod
-    # def lookup(search_document, user=None):
+    @staticmethod
+    def add_document(title, body, user=None):
+        
+        document = Document(title=title, body=body)
+        db.session.add(document)
 
-    #     this_document = None
+        if user is not None:
+            user_document = UserDocument(user=user, document=document)
+            db.session.add(user_document)
 
-    #     if len(search_document) > 0:
+        phrase_texts = TextBlob(body).noun_phrases
 
-    #         document_in_db = db.session.query(Document).filter_by(document=search_document).first()
+        print(phrase_texts)
 
-    #         if document_in_db:
-    #             this_document = document_in_db
-    #             this_document.search_count = this_document.search_count + 1
+        for phrase_text in phrase_texts:
 
-    #         else:
-    #             this_document = Document(document=search_document)
-    #             db.session.add(this_document)
+            flash_message = 'Analyzing ' + phrase_text
+            # flash(flash_message)
+            print(flash_message)
 
-    #         if user:
-    #             this_user_document = UserDocument(document=this_document, user=user)
-    #             db.session.add(this_user_document)
+            # add phrase
+            phrase = Phrase.add(phrase_text, user, document)
 
-    #         # if not this_document.findings or this_document.findings.created_date.max() > '2018-01-01':
-    #             # print('no findings')
-    #         Finding.analyze(this_document)
-
-    #         # if this_document.findings:
-    #             # print('has findings')
-
-    #         db.session.commit()
+            # analyze
+            Finding.analyze(phrase)
 
 
-    #     return this_document
+        db.session.commit()
+
+        return document
+
 
     # @staticmethod
     # def get_document(search_document):

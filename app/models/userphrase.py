@@ -9,6 +9,7 @@ class UserPhrase(db.Model):
     created_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     phrase = db.relationship('Phrase')
     user = db.relationship('User')
+    document = db.relationship('Document')
 
     def __repr__(self):
         return '<UserPhrase {}>'.format(self.phrase)

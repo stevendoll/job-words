@@ -107,14 +107,12 @@ def document_list():
 
     form = DocumentForm()
     if form.validate_on_submit():
-        document = Document(title=form.title.data, body=form.body.data)
-        db.session.add(document)
 
         if current_user.is_authenticated:
-            user_document = UserDocument(user=current_user, document=document)
-            db.session.add(user_document)
+            Document.add_document(title=form.title.data, body=form.body.data, user=current_user)
+        else:
+            Document.add_document(title=form.title.data, body=form.body.data, user=None)
 
-        db.session.commit()
         flash('Document added!')
 
     documents = Document.get_all()

@@ -409,72 +409,21 @@ class DocumentCase(unittest.TestCase):
 
     def test_create_document(self):
         title = 'john resume'
-        body = 'john body'
+        body = 'minister'
         self.create_document(title, body)
         response = self.app.client.get('/documents', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn('john resume', str(response.data))
 
+    def test_analyze_document_phrases(self):
+        title = 'steven resume'
+        body = 'A confident digital product manager, data scientist, MBA and entrepreneur, I deliver outcomes - not outputs.'
+        self.create_document(title, body)
+        response = self.app.client.get('/phrases', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('mba', str(response.data))
+        self.assertIn('data scientist', str(response.data))
 
-    # def test_view_document(self):
-    #     title = 'my resume'
-    #     document_in_db = db.session.query(Document).filter_by(title=title).first()
-    #     response = self.app.client.get('/documents/' + str(document_in_db.id), content_type='html/text')
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertIn('my resume', str(response.data))
-
-    # def test_create_document(self):
-    #     # phrase not found, should create
-    #     term = 'linux'
-
-    #     response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertIn('New search phrase!', str(response.data))
-    #     self.assertIn(term, str(response.data))
-
-    #     term = 'Accountant' # lowercase
-
-    #     response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertIn('New search phrase!', str(response.data))
-    #     self.assertNotIn(term, str(response.data))
-    #     self.assertIn(term.lower(), str(response.data))
-
-    #     term = 'project management' # keep spaces
-
-    #     response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertIn('New search phrase!', str(response.data))
-    #     self.assertIn(term, str(response.data))
-
-    #     term = ' mechanical engineer ' # trim
-
-    #     response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertIn('New search phrase!', str(response.data))
-    #     self.assertNotIn(' mechanical engineer ', str(response.data))
-
-
-    # def test_update_phrase(self):
-    #     # if already exists, don't create a new one, instead update counter and date
-    #     term = 'linux'
-
-    #     response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertIn(term, str(response.data))
-
-    #     response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertIn('Searched 2 times!', str(response.data))
-    #     self.assertIn(term, str(response.data))
-
-    #     term_with_junk = ' LINUX$$ ' # trim
-
-    #     response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertIn('Searched 3 times!', str(response.data))
-    #     self.assertIn(term, str(response.data))
-    #     self.assertNotIn(term_with_junk, str(response.data))
 
 
 class UserDocumentCase(unittest.TestCase):
@@ -541,30 +490,6 @@ class UserDocumentCase(unittest.TestCase):
         response = self.app.client.get('/users/mary/documents', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn('mary cv', str(response.data))
-    # def test_create_user_phrase(self):
-    #     # not authenticated
-    #     response = self.app.client.get('/users', content_type='teml/text')
-    #     self.assertEqual(response.status_code, 302)
-    #     self.assertNotIn('john', str(response.data))
-    #     self.assertIn('You should be redirected automatically to target URL: <a href="/login?next=%2Fusers">/login?next=%2Fusers</a>', str(response.data))
-
-    #     # authenticated
-    #     self.login('john','johnpassword')
-    #     response = self.app.client.get('/users',follow_redirects=True)
-        
-    #     self.assertIn('john', str(response.data))
-    #     self.assertIn('susan@example.com', str(response.data))
-
-    #     term = 'fortran'
-
-    #     response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertIn('New search phrase!', str(response.data))
-    #     self.assertIn(term, str(response.data))
-
-    #     response = self.app.client.get('/users/john/phrases', content_type='html/text')
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertIn(term, str(response.data))
 
 
 if __name__ == '__main__':

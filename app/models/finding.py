@@ -1,5 +1,8 @@
 import lxml.html
 import requests
+from time import sleep
+from random import randint
+
 from sqlalchemy.sql import func
 from flask import flash
 import datetime as dt
@@ -66,6 +69,9 @@ class Finding(db.Model):
 
         # if a recent one is not in the database, look it up
         if not this_finding:
+
+            # wait and vary times
+            sleep(randint(0,3))
 
             indeed_content = Finding.retrieve_indeed_search_result(phrase.phrase)
 

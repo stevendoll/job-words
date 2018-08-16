@@ -19,50 +19,56 @@ class Phrase(db.Model):
         return Phrase.query.all()
 
     @staticmethod
-    def lookup(search_phrase, user=None):
+    def add(phrase_text, user=None, document=None):
 
-        this_phrase = None
+        phrase = None
 
-        if len(search_phrase) > 0:
+        if len(phrase_text) > 0:
 
-            phrase_in_db = db.session.query(Phrase).filter_by(phrase=search_phrase).first()
+            phrase_in_db = db.session.query(Phrase).filter_by(phrase=phrase_text).first()
 
             if phrase_in_db:
-                this_phrase = phrase_in_db
-                this_phrase.search_count = this_phrase.search_count + 1
+                phrase = phrase_in_db
+                phrase.search_count = phrase.search_count + 1
 
             else:
-                this_phrase = Phrase(phrase=search_phrase)
-                db.session.add(this_phrase)
+                phrase = Phrase(phrase=phrase_text)
+                db.session.add(phrase)
 
-            if user:
-                this_user_phrase = UserPhrase(phrase=this_phrase, user=user)
-                db.session.add(this_user_phrase)
-
-            # scrape indeed and analyze
-            Finding.analyze(this_phrase)
+            if user or document:
+                user_phrase = UserPhrase(phrase=phrase, user=user, document=document)
+                db.session.add(user_phrase)
 
             db.session.commit()
 
-
-        return this_phrase
+        return phrase
 
     @staticmethod
-    def get_phrase(search_phrase):
+    def lookup(phrase_text, user=None, document=None):
+
+        phrase = Phrase.add(phrase_text, user=user, document=document)
+
+        # scrape indeed and analyze
+        Finding.analyze(phrase)
+
+        return phrase
+
+    @staticmethod
+    def get_phrase(phrase_text):
 
         this_phrase = None
 
-        if len(search_phrase) > 0:
+        if len(phrase_text) > 0:
 
-            phrase_in_db = db.session.query(Phrase).filter_by(phrase=search_phrase).first()
+            phrase_in_db = db.session.query(Phrase).filter_by(phrase=phrase_text).first()
 
             if phrase_in_db:
-                this_phrase = phrase_in_db
+                phrase = phrase_in_db
 
             else:
                 # 404 would be better
-                this_phrase = None
+                phrase = None
 
-        return this_phrase
+        return phrase
         
 
