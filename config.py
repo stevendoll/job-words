@@ -1,4 +1,5 @@
 import os
+import warnings
 # from dotenv import load_dotenv
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -22,6 +23,8 @@ class Config(object):
     # ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
     # REDIS_URL = os.environ.get('REDIS_URL') or 'redis://'
     # POSTS_PER_PAGE = 25
+
+    warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 
 class TestConfig(object):
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'
