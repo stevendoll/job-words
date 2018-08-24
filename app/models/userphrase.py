@@ -1,5 +1,6 @@
 from app import db, login
 from sqlalchemy.sql import func
+import datetime as dt
 
 class UserPhrase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -10,6 +11,34 @@ class UserPhrase(db.Model):
     phrase = db.relationship('Phrase')
     user = db.relationship('User')
     document = db.relationship('Document')
+
+    def serialize(self):
+        result = {}
+        result['document'] = self.document.title if self.document else None
+        result['user'] = self.user.username if self.user else None
+        result['phraseText'] = self.phrase.phrase
+        result['searchCount'] = self.phrase.search_count
+        result['createdDate'] = self.phrase.created_date.strftime('%Y-%m-%dT%H:%M:%S.000Z') if isinstance(self.phrase.created_date, dt.date) else None
+        result['updatedDate'] = self.phrase.updated_date.strftime('%Y-%m-%dT%H:%M:%S.000Z') if isinstance(self.phrase.updated_date, dt.date) else None
+
+        if self.phrase.findings:
+
+            finding = self.phrase.findings[-1]
+
+            result['meanSalary'] = finding.mean_salary
+            result['sigmaSalary'] = finding.mean_salary
+            result['jobsCount'] = finding.jobs_count
+            result['jobsOver100kCount'] = finding.jobs_above_50k_count
+
+        else:
+
+            result['meanSalary'] = None
+            result['sigmaSalary'] = None
+            result['jobsCount'] = None
+            result['jobsOver100kCount'] = None
+
+        return result
+
 
     def __repr__(self):
         return '<UserPhrase {}>'.format(self.phrase)

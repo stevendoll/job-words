@@ -1,6 +1,7 @@
 from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
 import re
+import json
 from app import app, db
 from app.forms import LoginForm, SignupForm, DocumentForm
 from app.models import User, Phrase, UserPhrase, Finding, Document, UserDocument
@@ -8,7 +9,11 @@ from app.models import User, Phrase, UserPhrase, Finding, Document, UserDocument
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template('index.html', title='Home')
+    return render_template('charts.html', title='Home')
+
+@app.route('/charts')
+def charts():
+    return render_template('charts.html', title='Home')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -132,4 +137,29 @@ def user_document_list(username):
     documents = User.get_by_username(username).documents
     
     return render_template('user-document.html', title='User Documents', documents=documents)
+
+@app.route('/api/phrases')
+def phrase_list_api():
+
+    # entire market of phrases
+    phrases = Phrase.get_all()
+
+    result = {}
+    phrase_list = []
+
+    for phrase in phrases:
+        if phrase.findings and phrase.findings[-1].jobs_count and phrase.findings[-1].jobs_count > 10:
+            phrase_list.append(phrase.serialize())
+
+    # phrases associated with user and/or document
+    user_phrases = UserPhrase.get_all()
+
+    for phrase in user_phrases:
+        if phrase.phrase.findings and phrase.phrase.findings[-1].jobs_count and phrase.phrase.findings[-1].jobs_count > 10:
+            phrase_list.append(phrase.serialize())
+
+    result['phrases'] = phrase_list
+    result['phraseCount'] = len(phrase_list)
+    
+    return json.dumps(result)
 

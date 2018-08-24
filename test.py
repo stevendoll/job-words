@@ -153,6 +153,12 @@ class PhraseCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('project manager', str(response.data))
 
+    def test_view_phrase_in_api(self):
+        # not authenticated
+        response = self.app.client.get('/api/phrases', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('project manager', str(response.data))
+
     def test_view_phrase(self):
         response = self.app.client.get('/phrases/project-manager', content_type='html/text')
         self.assertEqual(response.status_code, 200)
@@ -324,6 +330,12 @@ class FindingCase(unittest.TestCase):
         response = self.app.client.get('/phrases/project-manager', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         # self.assertIn('indeed results for _project_manager_', str(response.data))
+
+    def test_view_finding_in_api(self):
+        # not authenticated
+        response = self.app.client.get('/api/phrases', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('jobsCount: null', str(response.data))
 
     def test_no_findings(self):
         response = self.app.client.get('/phrases/nurse', content_type='html/text')

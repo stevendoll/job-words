@@ -40,4 +40,7 @@ app.logger.info('App startup')
 
 from app import routes, models
 
+if __name__ == '__main__':
+    app.run()
+
 

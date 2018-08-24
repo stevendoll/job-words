@@ -4,6 +4,11 @@
 {% if title %}{{ title }} - Job Words{% else %}{{ _('Welcome to Job Words') }}{% endif %}
 {% endblock %}
 
+{% block styles %}
+{{super()}}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dc/3.0.6/dc.min.css">
+{% endblock %}
+
 {% block navbar %}
 <nav class="navbar navbar-default">
     <div class="container">
