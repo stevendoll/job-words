@@ -30,7 +30,7 @@ class Document(db.Model):
         
 
     def __repr__(self):
-        return '<Document {}>'.format(self.document)
+        return '<Document {}>'.format(self.title)
 
     @staticmethod
     def get_all():

@@ -14,8 +14,8 @@ class UserPhrase(db.Model):
 
     def serialize(self):
         result = {}
-        result['document'] = self.document.title if self.document else None
-        result['user'] = self.user.username if self.user else None
+        result['documentTitle'] = self.document.title if self.document else None
+        result['username'] = self.user.username if self.user else None
         result['phraseText'] = self.phrase.phrase
         result['searchCount'] = self.phrase.search_count
         result['createdDate'] = self.phrase.created_date.strftime('%Y-%m-%dT%H:%M:%S.000Z') if isinstance(self.phrase.created_date, dt.date) else None

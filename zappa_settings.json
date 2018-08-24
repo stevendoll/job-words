@@ -1,6 +1,6 @@
 {
     "dev": {
-        "app_function": "app.__init__.app",
+        "app_function": "run.app",
         "aws_region": "us-west-2",
         "profile_name": "default",
         "project_name": "job-words",

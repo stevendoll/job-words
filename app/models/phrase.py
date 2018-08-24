@@ -9,14 +9,14 @@ class Phrase(db.Model):
     phrase = db.Column(db.Text(), index=True, unique=True)
     search_count = db.Column(db.Integer, default=1)
     findings = db.relationship('Finding')
-    # documents = db.relationship('UserPhrase')
+    user_phrases = db.relationship('UserPhrase')
     created_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_date = db.Column(db.DateTime(timezone=True), onupdate=func.now())
 
     def serialize(self):
         result = {}
-        result['document'] = None
-        result['user'] = None
+        result['documentTitle'] = None
+        result['username'] = None
         result['phraseText'] = self.phrase
         result['searchCount'] = self.search_count
         result['createdDate'] = self.created_date.strftime('%Y-%m-%dT%H:%M:%S.000Z') if isinstance(self.created_date, dt.date) else None

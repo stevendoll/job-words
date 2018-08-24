@@ -11,32 +11,38 @@
 
     var usChart = dc.geoChoroplethChart("#us-chart");
     var phraseChart = dc.bubbleChart("#phrase-chart");
-    // var roundChart = dc.bubbleChart("#round-chart");
+    var userChart = dc.rowChart('#user-chart');
+    var documentChart = dc.rowChart('#document-chart');
 
-    // d3.json("/api/phrases").then(function (jsonData) {
-
-    d3.json("/api/phrases").then(function (jsonData) {
+    d3.json("api/phrases").then(function (jsonData) {
         
         var records = jsonData["phrases"]
 
-          records.forEach(function(x) {
-            x.meanSalary = x.meanSalary / 1000;
+          records.forEach(function(d) {
+            d.meanSalary = d.meanSalary / 1000;
+            if (d.documentTitle) {} else { d["documentTitle"] = '-No document-'};
+            if (d.username) {} else { d["username"] = '-Anonymous-'};
+
           });
 
 
-        var data = crossfilter(records);
+        var ndx = crossfilter(records);
+        var all = ndx.groupAll();
 
-        var states = data.dimension(function (d) {
-            return d["state"];
-        });
-        var stateJobsSum = states.group().reduceSum(function (d) {
+        var userDimension = ndx.dimension(function (d) { return d["username"];});
+        var documentDimension = ndx.dimension(function (d) { return d["documentTitle"];});
+        var stateDimension = ndx.dimension(function (d) { return d["state"];});
+        var phraseDimension = ndx.dimension(function (d) {return d["phraseText"];});
+
+        var userGroup = userDimension.group();
+        var documentGroup = documentDimension.group();
+
+
+        var stateJobsSum = stateDimension.group().reduceSum(function (d) {
             return d["meanSalary"];
         });
 
-        var phrases = data.dimension(function (d) {
-            return d["phraseText"];
-        });
-        var statsByPhrases = phrases.group().reduce(
+        var statsByPhrases = phraseDimension.group().reduce(
                 function (p, v) {
                     p.meanSalary += +v["meanSalary"];
                     p.jobs += +v["jobsCount"];
@@ -62,30 +68,53 @@
                 }
         );
 
-        // var rounds = data.dimension(function (d) {
-        //     return d["RoundClassDescr"];
-        // });
-        // var statsByRounds = rounds.group().reduce(
-        //         function (p, v) {
-        //             p.meanSalary += +v["Raised"];
-        //             p.jobs += +v["Jobs"];
-        //             return p;
-        //         },
-        //         function (p, v) {
-        //             p.meanSalary -= +v["Raised"];
-        //             if (p.meanSalary < 0.001) p.meanSalary = 0; // do some clean up
-        //             p.jobs -= +v["Jobs"];
-        //             return p;
-        //         },
-        //         function () {
-        //             return {meanSalary: 0, jobs: 0}
-        //         }
-        // );
+        userChart /* dc.rowChart('#day-of-week-chart', 'chartGroup') */
+        .width(180)
+        .height(180)
+        // .margins({top: 20, left: 10, right: 10, bottom: 20})
+        .group(userGroup)
+        .dimension(userDimension)
+        // .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
+        // .label(function (d) {
+        //     return d.key.split('.')[1];
+        // })
 
-        d3.json("/static/js/us-states.json").then(function (statesJson) {
-            usChart.width(990)
-                    .height(500)
-                    .dimension(states)
+        // .title(function (d) {
+        //     return d.value;
+        // })
+        .elasticX(true)
+        .xAxis().ticks(4);
+
+        documentChart /* dc.rowChart('#day-of-week-chart', 'chartGroup') */
+        .width(180)
+        .height(180)
+        // .margins({top: 20, left: 10, right: 10, bottom: 20})
+        .group(documentGroup)
+        .dimension(documentDimension)
+        // .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
+        // .label(function (d) {
+        //     return d.key.split('.')[1];
+        // })
+
+        // .title(function (d) {
+        //     return d.value;
+        // })
+        .elasticX(true)
+        .xAxis().ticks(4);
+
+
+        d3.json("static/js/us-states.json").then(function (statesJson) {
+            var width = 990;
+            var height = 500;
+
+            // D3 Projection
+            var projection = d3.geoAlbersUsa()
+                   .translate([width/4, height/4])    
+                   .scale([500]);
+
+            usChart.width(width)
+                    .height(height)
+                    .dimension(stateDimension)
                     .group(stateJobsSum)
                     .colors(d3.scaleQuantize().range(["#E2F2FF", "#C4E4FF", "#9ED2FF", "#81C5FF", "#6BBAFF", "#51AEFF", "#36A2FF", "#1E96FF", "#0089FF", "#0061B5"]))
                     .colorDomain([0, 200])
@@ -93,19 +122,19 @@
                     .overlayGeoJson(statesJson.features, "state", function (d) {
                         return d.properties.name;
                     })
-                .projection(d3.geoAlbersUsa())
+                .projection(projection)
                 .valueAccessor(function(kv) {
                     console.log(kv);
                     return kv.value;
                 })
                     .title(function (d) {
-                        return "State: " + d.key + "\nTotal Amount Raised: " + numberFormat(d.value ? d.value : 0) + "M";
+                        return "State: " + d.key + "\nTotal jobs: " + numberFormat(d.value ? d.value : 0) + "M";
                     });
 
             phraseChart.width(990)
                     .height(500)
-                    .margins({top: 10, right: 50, bottom: 30, left: 60})
-                    .dimension(phrases)
+                    .margins({top: 10, right: 50, bottom: 30, left: 80})
+                    .dimension(phraseDimension)
                     .group(statsByPhrases)
                     .colors(d3.scaleOrdinal(d3.schemeCategory10))
                     .keyAccessor(function (p) {
@@ -113,7 +142,7 @@
                         return p.value.count > 0 ? p.value.meanSalary / p.value.count : 0;
                     })
                     .valueAccessor(function (p) {
-                        return p.value.jobs;
+                        return p.value.count > 0 ? p.value.jobs / p.value.count : 0;
                         // return p.value.count > 0 ? p.value.jobs / p.value.count : 0;
                     })
                     .radiusValueAccessor(function (p) {
@@ -135,10 +164,10 @@
                     .title(function (p) {
                         return p.key
                                 + "\n"
-                                + "Average Salary: " + numberFormat(p.value.count > 0 ? p.value.meanSalary / p.value.count : 0) + "k\n"
-                                + "Number of Jobs: " + numberFormat(p.value.jobs) + "\n"
-                                + "Jobs over $100k: " + numberFormat(p.value.jobsOver100k) + "\n"
-                                + "radius: " + numberFormat(p.value.radius);
+                                + "Average Salary: $" + numberFormat(p.value.count > 0 ? p.value.meanSalary / p.value.count : 0) + "k\n"
+                                + "Number of Jobs: " + numberFormat(p.value.count > 0 ? p.value.jobs / p.value.count : 0) + "\n"
+                                + "Jobs over $100k: " + numberFormat(p.value.count > 0 ? p.value.jobsOver100k / p.value.count : 0) + "\n";
+                                // + "radius: " + numberFormat(p.value.radius);
                     });
             phraseChart.yAxis().tickFormat(function (s) {
                 return s + " jobs";
@@ -146,46 +175,6 @@
             phraseChart.xAxis().tickFormat(function (s) {
                 return s + "k";
             });
-
-            // roundChart.width(990)
-            //         .height(200)
-            //         .margins({top: 10, right: 50, bottom: 30, left: 60})
-            //         .dimension(rounds)
-            //         .group(statsByRounds)
-            //         .colors(d3.scaleOrdinal(d3.schemeCategory10))
-            //         .keyAccessor(function (p) {
-            //             return p.value.meanSalary;
-            //         })
-            //         .valueAccessor(function (p) {
-            //             return p.value.jobs;
-            //         })
-            //         .radiusValueAccessor(function (p) {
-            //             return p.value.meanSalary;
-            //         })
-            //         .x(d3.scaleLinear().domain([0, 5000]))
-            //         .r(d3.scaleLinear().domain([0, 9000]))
-            //         .minRadiusWithLabel(15)
-            //         .elasticY(true)
-            //         .yAxisPadding(150)
-            //         .elasticX(true)
-            //         .xAxisPadding(300)
-            //         .maxBubbleRelativeSize(0.07)
-            //         .renderHorizontalGridLines(true)
-            //         .renderVerticalGridLines(true)
-            //         .renderLabel(true)
-            //         .renderTitle(true)
-            //         .title(function (p) {
-            //             return p.key
-            //                     + "\n"
-            //                     + "Amount Raised: " + numberFormat(p.value.meanSalary) + "M\n"
-            //                     + "Number of Jobs: " + numberFormat(p.value.jobs);
-            //         });
-            // roundChart.yAxis().tickFormat(function (s) {
-            //     return s + " jobs";
-            // });
-            // roundChart.xAxis().tickFormat(function (s) {
-            //     return s + "M";
-            // });
 
             dc.renderAll();
         });
@@ -197,29 +186,78 @@
 {% block app_content %}
 
         {% if current_user.is_anonymous %}
-        	<h1>Job market by search phrase</h1>
+        	<h1>Hack the job market by like a data scientist!</h1>
         {% else %}
 			<h1>Hi, {{ current_user.username }}!</h1>
         {% endif %}
 
+
+
+<div class="row">
+    <div class="col-md-12">
     <div id="phrase-chart">
-        <strong>By Phrases</strong> (y: number of jobs, x: average salary, radius: number of jobs over $100k)
+        <strong>Job market by Search Phrase</strong> (y: number of jobs, x: average salary, radius: number of jobs over $100k)
         <a class="reset" href="javascript:phraseChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
 
-        <div class="clearfix"></div>
     </div>
+    </div>
+  </div>
 
-    <div class="clearfix"></div>
 
-    <!-- <div id="us-chart">
-        <strong>Job Distribution by States (color: total number of jobs)</strong>
+<div class="row">
+  <div class="col-md-3">
+      
+      <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">By User</h3>
+          </div>
+          <div class="panel-body">
+            <div id="user-chart">
         <a class="reset" href="javascript:usChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
         <span class="reset" style="display: none;"> | Current filter: <span class="filter"></span></span>
 
-        <div class="clearfix"></div>
-    </div> -->
+    </div>
+          </div>
+        </div>
 
-    <div class="clearfix"></div>
+  </div>
+  <div class="col-md-3">
+      
+
+      <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">By Document</h3>
+          </div>
+          <div class="panel-body">
+            <div id="document-chart">
+        <a class="reset" href="javascript:usChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+        <span class="reset" style="display: none;"> | Current filter: <span class="filter"></span></span>
+
+    </div>
+          </div>
+        </div>
+
+  </div>
+  <div class="col-md-6">
+      
+            
+      <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">Job Distribution by State (color: total number of jobs)</h3>
+          </div>
+          <div class="panel-body">
+            <div id="us-chart">
+        <a class="reset" href="javascript:usChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+        <span class="reset" style="display: none;"> | Current filter: <span class="filter"></span></span>
+
+    </div>
+          </div>
+        </div>
+
+  </div>
+</div>
+
+
 
     <!-- <div id="round-chart">
         <strong>By Rounds</strong> (y: number of jobs, x: total amount raised in millions, radius: amount raised)
@@ -228,10 +266,6 @@
         <div class="clearfix"></div>
     </div> -->
 
-    <div class="clearfix"></div>
 
-    <div>
-        <a href="javascript:dc.filterAll(); dc.renderAll();">Reset All</a>
-    </div>
 
 {% endblock %}
