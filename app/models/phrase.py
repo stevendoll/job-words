@@ -3,10 +3,12 @@ from sqlalchemy.sql import func
 from app.models.userphrase import UserPhrase
 from app.models.finding import Finding
 import datetime as dt
+import re
 
 class Phrase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    phrase_text = db.Column(db.Text(), index=True, unique=True)
+    phrase_text = db.Column(db.Text(), index=True, unique=True, nullable=False)
+    slug = db.Column(db.String(64), index=True, unique=True, nullable=False)
     search_count = db.Column(db.Integer, default=1)
     findings = db.relationship('Finding')
     user_phrases = db.relationship('UserPhrase')
@@ -63,7 +65,10 @@ class Phrase(db.Model):
                 phrase.search_count = phrase.search_count + 1
 
             else:
-                phrase = Phrase(phrase_text=phrase_text)
+                regex = r'[^a-zA-Z\s]'
+                slug = re.sub(regex, '', phrase_text.lower().strip()).replace(' ', '-')
+
+                phrase = Phrase(phrase_text=phrase_text, slug=slug)
                 db.session.add(phrase)
 
             if user or document:
@@ -85,13 +90,13 @@ class Phrase(db.Model):
         return phrase
 
     @staticmethod
-    def get_phrase(phrase_text):
+    def get_phrase(phrase_slug):
 
         this_phrase = None
 
-        if len(phrase_text) > 0:
+        if len(phrase_slug) > 0:
 
-            phrase_in_db = db.session.query(Phrase).filter_by(phrase_text=phrase_text).first()
+            phrase_in_db = db.session.query(Phrase).filter_by(slug=phrase_slug).first()
 
             if phrase_in_db:
                 phrase = phrase_in_db

@@ -128,7 +128,7 @@ class PhraseCase(unittest.TestCase):
         UserCase.setUp(self)
 
         # search phrase
-        p1 = Phrase(phrase_text='project manager')
+        p1 = Phrase(phrase_text='project manager', slug='project-manager')
         db.session.add(p1)
         db.session.commit()
 
@@ -229,9 +229,9 @@ class UserPhraseCase(unittest.TestCase):
         db.session.add_all([u1, u2])
 
         # create phrases
-        p1 = Phrase(phrase_text='project manager')
-        p2 = Phrase(phrase_text='nurse')
-        p3 = Phrase(phrase_text='engineer')
+        p1 = Phrase(phrase_text='project manager', slug='project-manager')
+        p2 = Phrase(phrase_text='nurse', slug='nurse')
+        p3 = Phrase(phrase_text='engineer', slug='engineer')
         db.session.add_all([p1, p2, p3])
 
         # create user phrases
@@ -298,9 +298,9 @@ class FindingCase(unittest.TestCase):
         UserCase.setUp(self)
 
         # create phrases
-        p1 = Phrase(phrase_text='project manager')
-        p2 = Phrase(phrase_text='nurse')
-        p3 = Phrase(phrase_text='engineer')
+        p1 = Phrase(phrase_text='project manager', slug='project-manager')
+        p2 = Phrase(phrase_text='nurse', slug='nurse')
+        p3 = Phrase(phrase_text='engineer', slug='engineer')
         db.session.add_all([p1, p2, p3])
 
         # create findings
@@ -393,7 +393,7 @@ class DocumentCase(unittest.TestCase):
         UserCase.setUp(self)
 
         # search phrase
-        d1 = Document(title='my resume')
+        d1 = Document(title='my resume', slug='my-resume')
         db.session.add(d1)
         db.session.commit()
 
@@ -454,9 +454,9 @@ class UserDocumentCase(unittest.TestCase):
         db.session.add_all([u1, u2])
 
         # create phrases
-        d1 = Document(title='jack resume')
-        d2 = Document(title='mary linkedin')
-        d3 = Document(title='mary resume')
+        d1 = Document(title='jack resume', slug='jack-resume')
+        d2 = Document(title='mary linkedin', slug='mary-linkedin')
+        d3 = Document(title='mary resume', slug='mary-resume')
         db.session.add_all([d1, d2, d3])
 
         # create user phrases

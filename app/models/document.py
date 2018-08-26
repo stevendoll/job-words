@@ -1,6 +1,7 @@
 from flask import flash
 from textblob import TextBlob, Word
 from sqlalchemy.sql import func
+import re
 
 from app import app, db, login
 from app.models.userdocument import UserDocument
@@ -9,7 +10,8 @@ from app.models.phrase import Phrase
 
 class Document(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.Text())
+    title = db.Column(db.Text(), nullable=False)
+    slug = db.Column(db.String(64), index=True, unique=True, nullable=False)
     body = db.Column(db.Text())
     document_phrases = db.relationship('UserPhrase')
     created_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
@@ -39,7 +41,10 @@ class Document(db.Model):
     @staticmethod
     def add_document(title, body, user=None):
         
-        document = Document(title=title, body=body)
+        regex = r'[^a-zA-Z\s]'
+        slug = re.sub(regex, '', title.lower().strip()).replace(' ', '-')
+
+        document = Document(title=title, body=body, slug=slug)
         db.session.add(document)
 
         if user is not None:

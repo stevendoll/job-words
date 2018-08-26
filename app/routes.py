@@ -89,12 +89,12 @@ def phrase_list():
     
     return render_template('phrase-list.html', title='Search Phrases', phrases=phrases, my_phrases=my_phrases)
 
-@app.route('/phrases/<phrase>')
-def phrase_view(phrase):
+@app.route('/phrases/<phrase_slug>')
+def phrase_view(phrase_slug):
 
-    phrase = Phrase.get_phrase(phrase.replace('-', ' '))
+    phrase = Phrase.get_phrase(phrase_slug)
     
-    return render_template('phrase.html', title='phrase.phrase', phrase=phrase)
+    return render_template('phrase.html', title='phrase.phrase_text', phrase=phrase)
 
 
 
