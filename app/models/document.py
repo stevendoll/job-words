@@ -2,6 +2,7 @@ from flask import flash
 from textblob import TextBlob, Word
 from sqlalchemy.sql import func
 import re
+import uuid
 
 from app import app, db, login
 from app.models.userdocument import UserDocument
@@ -41,8 +42,9 @@ class Document(db.Model):
     @staticmethod
     def add_document(title, body, user=None):
         
-        regex = r'[^a-zA-Z\s]'
-        slug = re.sub(regex, '', title.lower().strip()).replace(' ', '-')
+        regex = r'[^a-zA-Z\s\.-]'
+        title = re.sub(regex, '', title.strip())
+        slug = str(uuid.uuid4())[:8]
 
         document = Document(title=title, body=body, slug=slug)
         db.session.add(document)

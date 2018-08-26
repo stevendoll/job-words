@@ -62,7 +62,7 @@ def phrase_list():
 
     term = request.args.get('term', '')
 
-    regex = r'[^a-zA-Z\s]'
+    regex = r'[^\w\.\s\-]'
     term = re.sub(regex, '', term.lower().strip())
 
 

@@ -54,6 +54,14 @@ class Phrase(db.Model):
     @staticmethod
     def add(phrase_text, user=None, document=None):
 
+        regex_remove_special = r'[^\w\.\s\-]' # only letters, numbers, dash, period, whitespace
+        regex_extra_period = r'(\.+)(\s|$)|(\s|$)(\.+)' # remove periods at beginning and end, and adjacent to whitespace
+        regex_multiple_space = r'[\s]+' # trim multiple space
+        regex_multiple_dash = r'[-]+' # trim multiple dash
+        regex_multiple_space_or_dash = r'[-\s]+' # trim multiple space or dash
+        
+        phrase_text = re.sub(regex_multiple_dash, '-', re.sub(regex_multiple_space, ' ', re.sub(regex_extra_period, ' ', re.sub(regex_remove_special, '', phrase_text.lower())))).strip()
+
         phrase = None
 
         if len(phrase_text) > 0:
@@ -65,8 +73,8 @@ class Phrase(db.Model):
                 phrase.search_count = phrase.search_count + 1
 
             else:
-                regex = r'[^a-zA-Z\s]'
-                slug = re.sub(regex, '', phrase_text.lower().strip()).replace(' ', '-')
+
+                slug = re.sub(regex_multiple_space_or_dash, '-', re.sub(regex_extra_period, ' ', re.sub(regex_remove_special, '', phrase_text.lower()).strip()))
 
                 phrase = Phrase(phrase_text=phrase_text, slug=slug)
                 db.session.add(phrase)

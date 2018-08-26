@@ -217,6 +217,34 @@ class PhraseCase(unittest.TestCase):
         self.assertIn(term, str(response.data))
         self.assertNotIn(term_with_junk, str(response.data))
 
+    def test_generate_phrase_slug(self):
+
+        slug = 'dashboard-with-scikit-learn-and-d3.js'
+        term_with_junk = ' dashboard with scikit-learn and d3.js'
+
+        response = self.app.client.get('/phrases?term=' + term_with_junk, content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('New search phrase!', str(response.data))
+        self.assertIn(slug, str(response.data))
+
+        term_with_junk = '  dashboard  with scikit-learn and d3.js'
+
+        response = self.app.client.get('/phrases?term=' + term_with_junk, content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Searched 2 times!', str(response.data))
+        self.assertIn(slug, str(response.data))
+
+        term_with_junk = ' dashboard..  with scikit-learn and d3.js.'
+
+        response = self.app.client.get('/phrases?term=' + term_with_junk, content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Searched 3 times!', str(response.data))
+        self.assertIn(slug, str(response.data))
+
+        response = self.app.client.get('/phrases/' + slug, content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('dashboard with scikit-learn and d3.js', str(response.data))
+
 
 class UserPhraseCase(unittest.TestCase):
     def setUp(self):
@@ -431,6 +459,25 @@ class DocumentCase(unittest.TestCase):
         response = self.app.client.get('/documents', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn('john resume', str(response.data))
+
+    def test_generate_document_slug(self):
+
+        # create a new document with the same title
+        title = 'my resume'
+        body = 'minister'
+        self.create_document(title, body)
+        response = self.app.client.get('/documents', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('my resume', str(response.data))
+        
+        # check if 2 documents in db
+        documents_in_db = db.session.query(Document).filter_by(title=title).all()
+        self.assertEqual(len(documents_in_db), 2)
+
+        # check that slugs are different
+        documents_in_db = db.session.query(Document).filter_by(slug='my-resume').all()
+        self.assertEqual(len(documents_in_db), 1)
+
 
     def test_analyze_document_phrases(self):
         title = 'steven resume'
