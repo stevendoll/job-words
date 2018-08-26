@@ -6,7 +6,7 @@ import datetime as dt
 
 class Phrase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    phrase = db.Column(db.Text(), index=True, unique=True)
+    phrase_text = db.Column(db.Text(), index=True, unique=True)
     search_count = db.Column(db.Integer, default=1)
     findings = db.relationship('Finding')
     user_phrases = db.relationship('UserPhrase')
@@ -17,7 +17,7 @@ class Phrase(db.Model):
         result = {}
         result['documentTitle'] = None
         result['username'] = None
-        result['phraseText'] = self.phrase
+        result['phraseText'] = self.phrase_text
         result['searchCount'] = self.search_count
         result['createdDate'] = self.created_date.strftime('%Y-%m-%dT%H:%M:%S.000Z') if isinstance(self.created_date, dt.date) else None
         result['updatedDate'] = self.updated_date.strftime('%Y-%m-%dT%H:%M:%S.000Z') if isinstance(self.updated_date, dt.date) else None
@@ -27,7 +27,7 @@ class Phrase(db.Model):
             finding = self.findings[-1]
 
             result['meanSalary'] = finding.mean_salary
-            result['sigmaSalary'] = finding.mean_salary
+            result['sigmaSalary'] = finding.sigma_salary
             result['jobsCount'] = finding.jobs_count
             result['jobsOver100kCount'] = finding.jobs_above_50k_count
             result['state'] = 'KS'
@@ -43,7 +43,7 @@ class Phrase(db.Model):
         return result
 
     def __repr__(self):
-        return '<Phrase {}>'.format(self.phrase)
+        return '<Phrase {}>'.format(self.phrase_text)
 
     @staticmethod
     def get_all():
@@ -56,14 +56,14 @@ class Phrase(db.Model):
 
         if len(phrase_text) > 0:
 
-            phrase_in_db = db.session.query(Phrase).filter_by(phrase=phrase_text).first()
+            phrase_in_db = db.session.query(Phrase).filter_by(phrase_text=phrase_text).first()
 
             if phrase_in_db:
                 phrase = phrase_in_db
                 phrase.search_count = phrase.search_count + 1
 
             else:
-                phrase = Phrase(phrase=phrase_text)
+                phrase = Phrase(phrase_text=phrase_text)
                 db.session.add(phrase)
 
             if user or document:
@@ -91,7 +91,7 @@ class Phrase(db.Model):
 
         if len(phrase_text) > 0:
 
-            phrase_in_db = db.session.query(Phrase).filter_by(phrase=phrase_text).first()
+            phrase_in_db = db.session.query(Phrase).filter_by(phrase_text=phrase_text).first()
 
             if phrase_in_db:
                 phrase = phrase_in_db

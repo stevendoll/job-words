@@ -157,10 +157,7 @@ def phrase_list_api():
     for user_phrase in user_phrases:
         if user_phrase.phrase.findings and user_phrase.phrase.findings[-1].jobs_count and user_phrase.phrase.findings[-1].jobs_count > 10:
             phrase_list.append(user_phrase.serialize())
-            if user_phrase.document:
-            	print(user_phrase.document)
-            if user_phrase.user:
-            	print(user_phrase.user)
+            
 
     result['phrases'] = phrase_list
     result['phraseCount'] = len(phrase_list)

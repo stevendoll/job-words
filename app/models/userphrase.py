@@ -16,7 +16,7 @@ class UserPhrase(db.Model):
         result = {}
         result['documentTitle'] = self.document.title if self.document else None
         result['username'] = self.user.username if self.user else None
-        result['phraseText'] = self.phrase.phrase
+        result['phraseText'] = self.phrase.phrase_text
         result['searchCount'] = self.phrase.search_count
         result['createdDate'] = self.phrase.created_date.strftime('%Y-%m-%dT%H:%M:%S.000Z') if isinstance(self.phrase.created_date, dt.date) else None
         result['updatedDate'] = self.phrase.updated_date.strftime('%Y-%m-%dT%H:%M:%S.000Z') if isinstance(self.phrase.updated_date, dt.date) else None
@@ -26,7 +26,7 @@ class UserPhrase(db.Model):
             finding = self.phrase.findings[-1]
 
             result['meanSalary'] = finding.mean_salary
-            result['sigmaSalary'] = finding.mean_salary
+            result['sigmaSalary'] = finding.sigma_salary
             result['jobsCount'] = finding.jobs_count
             result['jobsOver100kCount'] = finding.jobs_above_50k_count
 

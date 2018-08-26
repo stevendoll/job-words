@@ -73,7 +73,7 @@ class Finding(db.Model):
             # wait and vary times
             sleep(randint(0,3))
 
-            indeed_content = Finding.retrieve_indeed_search_result(phrase.phrase)
+            indeed_content = Finding.retrieve_indeed_search_result(phrase.phrase_text)
 
             this_finding = Finding(
                 phrase=phrase,

@@ -128,7 +128,7 @@ class PhraseCase(unittest.TestCase):
         UserCase.setUp(self)
 
         # search phrase
-        p1 = Phrase(phrase='project manager')
+        p1 = Phrase(phrase_text='project manager')
         db.session.add(p1)
         db.session.commit()
 
@@ -143,9 +143,9 @@ class PhraseCase(unittest.TestCase):
 
     def test_get_phrase(self):
         # search phrase
-        phrase = 'project manager'
-        phrase_in_db = db.session.query(Phrase).filter_by(phrase=phrase).first()
-        self.assertEqual(phrase_in_db.phrase, phrase)
+        phrase_text = 'project manager'
+        phrase_in_db = db.session.query(Phrase).filter_by(phrase_text=phrase_text).first()
+        self.assertEqual(phrase_in_db.phrase_text, phrase_text)
 
     def test_view_phrase_in_list(self):
         # not authenticated
@@ -154,10 +154,10 @@ class PhraseCase(unittest.TestCase):
         self.assertIn('project manager', str(response.data))
 
     def test_view_phrase_in_api(self):
-        # not authenticated
+        # phrase does not appear because no finding
         response = self.app.client.get('/api/phrases', content_type='html/text')
         self.assertEqual(response.status_code, 200)
-        self.assertIn('project manager', str(response.data))
+        self.assertIn('{"phrases": [], "phraseCount": 0}', str(response.data))
 
     def test_view_phrase(self):
         response = self.app.client.get('/phrases/project-manager', content_type='html/text')
@@ -229,9 +229,9 @@ class UserPhraseCase(unittest.TestCase):
         db.session.add_all([u1, u2])
 
         # create phrases
-        p1 = Phrase(phrase='project manager')
-        p2 = Phrase(phrase='nurse')
-        p3 = Phrase(phrase='engineer')
+        p1 = Phrase(phrase_text='project manager')
+        p2 = Phrase(phrase_text='nurse')
+        p3 = Phrase(phrase_text='engineer')
         db.session.add_all([p1, p2, p3])
 
         # create user phrases
@@ -255,7 +255,7 @@ class UserPhraseCase(unittest.TestCase):
     def test_get_user_phrase(self):
         # search phrase
         user_in_db = db.session.query(User).filter_by(username='jack').first()
-        phrase_in_db = db.session.query(Phrase).filter_by(phrase='engineer').first()
+        phrase_in_db = db.session.query(Phrase).filter_by(phrase_text='engineer').first()
         user_phrase_in_db = db.session.query(UserPhrase).filter_by(phrase_id=phrase_in_db.id, user_id=user_in_db.id).first()
         self.assertEqual(user_phrase_in_db.user_id, user_in_db.id)
 
@@ -298,15 +298,15 @@ class FindingCase(unittest.TestCase):
         UserCase.setUp(self)
 
         # create phrases
-        p1 = Phrase(phrase='project manager')
-        p2 = Phrase(phrase='nurse')
-        p3 = Phrase(phrase='engineer')
+        p1 = Phrase(phrase_text='project manager')
+        p2 = Phrase(phrase_text='nurse')
+        p3 = Phrase(phrase_text='engineer')
         db.session.add_all([p1, p2, p3])
 
         # create findings
-        f1 = Finding(phrase=p1, created_date=dt.datetime(2018,4,1,0,0,0))
-        f2 = Finding(phrase=p3)
-        f3 = Finding(phrase=p3)
+        f1 = Finding(phrase=p1, created_date=dt.datetime(2018,4,1,0,0,0), mean_salary=110000, jobs_count=30000)
+        f2 = Finding(phrase=p3, mean_salary=85000, jobs_count=50000)
+        f3 = Finding(phrase=p3, mean_salary=95000, jobs_count=60000)
         db.session.add_all([f1, f2, f3])
         db.session.commit()
 
@@ -322,7 +322,7 @@ class FindingCase(unittest.TestCase):
 
     def test_get_finding(self):
         # search phrase
-        phrase_in_db = db.session.query(Phrase).filter_by(phrase='engineer').first()
+        phrase_in_db = db.session.query(Phrase).filter_by(phrase_text='engineer').first()
         finding_in_db = db.session.query(Finding).filter_by(phrase_id=phrase_in_db.id).first()
         self.assertNotEqual(finding_in_db, None)
 
@@ -332,10 +332,15 @@ class FindingCase(unittest.TestCase):
         # self.assertIn('indeed results for _project_manager_', str(response.data))
 
     def test_view_finding_in_api(self):
-        # not authenticated
+        # check api
         response = self.app.client.get('/api/phrases', content_type='html/text')
         self.assertEqual(response.status_code, 200)
-        self.assertNotIn('jobsCount: null', str(response.data))
+        self.assertNotIn('"jobsCount": null', str(response.data))
+        self.assertIn('"jobsCount": 30000', str(response.data))
+        
+        # only most recent finding
+        self.assertNotIn('"jobsCount": 50000', str(response.data))
+        self.assertIn('"jobsCount": 60000', str(response.data))
 
     def test_no_findings(self):
         response = self.app.client.get('/phrases/nurse', content_type='html/text')
@@ -367,7 +372,7 @@ class FindingCase(unittest.TestCase):
         
         # search old term already in db and count findings
         term = 'project manager'
-        phrase = db.session.query(Phrase).filter_by(phrase=term).first()
+        phrase = db.session.query(Phrase).filter_by(phrase_text=term).first()
         fifth_finding_count = db.session.query(Finding).filter_by(phrase=phrase).count()
         self.assertEqual(fifth_finding_count, 1)
         response = self.app.client.get('/phrases?term=' + term, content_type='html/text')

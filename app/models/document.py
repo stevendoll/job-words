@@ -2,7 +2,7 @@ from flask import flash
 from textblob import TextBlob, Word
 from sqlalchemy.sql import func
 
-from app import db, login
+from app import app, db, login
 from app.models.userdocument import UserDocument
 from app.models.finding import Finding
 from app.models.phrase import Phrase
@@ -48,13 +48,12 @@ class Document(db.Model):
 
         phrase_texts = TextBlob(body).noun_phrases
 
-        print(phrase_texts)
+        app.logger.info(phrase_texts)
 
         for phrase_text in phrase_texts:
 
             flash_message = 'Analyzing ' + phrase_text
-            # flash(flash_message)
-            print(flash_message)
+            app.logger.info(flash_message)
 
             # add phrase
             phrase = Phrase.add(phrase_text, user, document)
