@@ -9,7 +9,13 @@ from app.models import User, Phrase, UserPhrase, Finding, Document, UserDocument
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template('charts.html', title='Home')
+    phrase = Phrase.get_last()
+
+    phrases = Phrase.get_all()
+
+    my_phrases = None
+   
+    return render_template('phrase-list.html', title='Search Phrases', phrases=phrases, my_phrases=my_phrases, phrase=phrase)
 
 @app.route('/charts')
 def charts():
@@ -65,6 +71,8 @@ def phrase_list():
     regex = r'[^\w\.\s\-]'
     term = re.sub(regex, '', term.lower().strip())
 
+    phrase = Phrase.get_last()
+
 
     if len(term) > 0:
         if current_user.is_anonymous:
@@ -74,10 +82,10 @@ def phrase_list():
 
         if phrase == None:
             flash('Something went wrong')
-        elif phrase.search_count == 1:
-            flash('New search phrase! ')
-        else:
-            flash('Searched ' + str(phrase.search_count) + ' times!')
+        # elif phrase.search_count == 1:
+        #     flash('New search phrase! ')
+        # else:
+        #     flash('Searched ' + str(phrase.search_count) + ' times!')
 
 
     phrases = Phrase.get_all()
@@ -87,7 +95,7 @@ def phrase_list():
     else:
         my_phrases = User.get_by_username(current_user.username).phrases
     
-    return render_template('phrase-list.html', title='Search Phrases', phrases=phrases, my_phrases=my_phrases)
+    return render_template('phrase-list.html', title='Search Phrases', phrases=phrases, my_phrases=my_phrases, phrase=phrase)
 
 @app.route('/phrases/<phrase_slug>')
 def phrase_view(phrase_slug):

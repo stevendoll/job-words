@@ -47,7 +47,7 @@
 		<td>{{ this_finding.indeed_content[0:50] if this_finding.indeed_content }} </td>
 		<td>{{ this_finding.created_date }} </td>
 		<td>{{ this_finding.updated_date }} </td>
-		<td>{{ this_finding.mean_salary }} </td>
+		<td>{{ '${:,.0f}'.format(this_finding.mean_salary) }} </td>
 		<td>{{ this_finding.sigma_salary }} </td>
 		<td>{{ this_finding.jobs_count }} </td>
 		<td>{{ this_finding.jobs_above_50k_count }} </td>

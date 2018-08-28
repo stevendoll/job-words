@@ -10,6 +10,7 @@
 {% endblock %}
 
 {% block navbar %}
+{% if not current_user.is_anonymous %}
 <nav class="navbar navbar-default">
     <div class="container">
         <div class="navbar-header">
@@ -51,6 +52,8 @@
     </div>
 </nav>
 
+<h1>Hi, {{ current_user.username }}!</h1>
+{% endif %}
 
 {% with messages = get_flashed_messages() %}
 {% if messages %}

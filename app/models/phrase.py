@@ -49,7 +49,11 @@ class Phrase(db.Model):
 
     @staticmethod
     def get_all():
-        return Phrase.query.all()
+        return Phrase.query.join(Finding).filter(Finding.jobs_count > 10).order_by(Finding.mean_salary.desc()).all()
+
+    @staticmethod
+    def get_last():
+        return Phrase.query.join(Finding).filter(Finding.jobs_count > 10).order_by(Phrase.updated_date.desc()).first()
 
     @staticmethod
     def add(phrase_text, user=None, document=None):

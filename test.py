@@ -147,18 +147,6 @@ class PhraseCase(unittest.TestCase):
         phrase_in_db = db.session.query(Phrase).filter_by(phrase_text=phrase_text).first()
         self.assertEqual(phrase_in_db.phrase_text, phrase_text)
 
-    def test_view_phrase_in_list(self):
-        # not authenticated
-        response = self.app.client.get('/phrases', content_type='html/text')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('project manager', str(response.data))
-
-    def test_view_phrase_in_api(self):
-        # phrase does not appear because no finding
-        response = self.app.client.get('/api/phrases', content_type='html/text')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('{"phrases": [], "phraseCount": 0}', str(response.data))
-
     def test_view_phrase(self):
         response = self.app.client.get('/phrases/project-manager', content_type='html/text')
         self.assertEqual(response.status_code, 200)
@@ -206,44 +194,56 @@ class PhraseCase(unittest.TestCase):
 
         response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
         self.assertEqual(response.status_code, 200)
-        self.assertIn('Searched 2 times!', str(response.data))
+        self.assertIn('searched 2 times.', str(response.data))
         self.assertIn(term, str(response.data))
 
         term_with_junk = ' LINUX$$ ' # trim
 
         response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
         self.assertEqual(response.status_code, 200)
-        self.assertIn('Searched 3 times!', str(response.data))
+        self.assertIn('searched 3 times.', str(response.data))
         self.assertIn(term, str(response.data))
         self.assertNotIn(term_with_junk, str(response.data))
 
     def test_generate_phrase_slug(self):
 
-        slug = 'dashboard-with-scikit-learn-and-d3.js'
-        term_with_junk = ' dashboard with scikit-learn and d3.js'
+        slug = 'angularjs-node.js'
+        term_with_junk = ' AngularJS Node.js'
 
         response = self.app.client.get('/phrases?term=' + term_with_junk, content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn('New search phrase!', str(response.data))
         self.assertIn(slug, str(response.data))
 
-        term_with_junk = '  dashboard  with scikit-learn and d3.js'
+        term_with_junk = '  AngularJS   Node.js'
 
         response = self.app.client.get('/phrases?term=' + term_with_junk, content_type='html/text')
         self.assertEqual(response.status_code, 200)
-        self.assertIn('Searched 2 times!', str(response.data))
+        self.assertIn('searched 2 times.', str(response.data))
         self.assertIn(slug, str(response.data))
 
-        term_with_junk = ' dashboard..  with scikit-learn and d3.js.'
+        term_with_junk = '.  ..AngularJS ..Node.js.'
 
         response = self.app.client.get('/phrases?term=' + term_with_junk, content_type='html/text')
         self.assertEqual(response.status_code, 200)
-        self.assertIn('Searched 3 times!', str(response.data))
+        self.assertIn('searched 3 times.', str(response.data))
         self.assertIn(slug, str(response.data))
 
         response = self.app.client.get('/phrases/' + slug, content_type='html/text')
         self.assertEqual(response.status_code, 200)
-        self.assertIn('dashboard with scikit-learn and d3.js', str(response.data))
+        self.assertIn('angularjs node.js', str(response.data))
+
+        slug = 'scikit-learn-python'
+        term_with_junk = '  scikit-learn.. python.'
+
+        response = self.app.client.get('/phrases?term=' + term_with_junk, content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('New search phrase!', str(response.data))
+        self.assertIn(slug, str(response.data))
+
+        response = self.app.client.get('/phrases/' + slug, content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('scikit-learn python', str(response.data))
 
 
 class UserPhraseCase(unittest.TestCase):
@@ -329,13 +329,15 @@ class FindingCase(unittest.TestCase):
         p1 = Phrase(phrase_text='project manager', slug='project-manager')
         p2 = Phrase(phrase_text='nurse', slug='nurse')
         p3 = Phrase(phrase_text='engineer', slug='engineer')
-        db.session.add_all([p1, p2, p3])
+        p4 = Phrase(phrase_text='tiger trainer', slug='tiger-trainer')
+        db.session.add_all([p1, p2, p3, p4])
 
         # create findings
-        f1 = Finding(phrase=p1, created_date=dt.datetime(2018,4,1,0,0,0), mean_salary=110000, jobs_count=30000)
-        f2 = Finding(phrase=p3, mean_salary=85000, jobs_count=50000)
-        f3 = Finding(phrase=p3, mean_salary=95000, jobs_count=60000)
-        db.session.add_all([f1, f2, f3])
+        f1 = Finding(phrase=p1, created_date=dt.datetime(2018,4,1,0,0,0), mean_salary=110000, jobs_count=30000, jobs_above_100k_count=5000)
+        f2 = Finding(phrase=p3, created_date=dt.datetime(2018,8,15,0,0,0), mean_salary=85000, jobs_count=50000, jobs_above_100k_count=6000)
+        f3 = Finding(phrase=p3, created_date=dt.datetime(2018,8,15,0,0,0), mean_salary=95000, jobs_count=60000, jobs_above_100k_count=7000)
+        f4 = Finding(phrase=p4, created_date=dt.datetime(2018,8,15,0,0,0), mean_salary=95000, jobs_count=5, jobs_above_100k_count=1)
+        db.session.add_all([f1, f2, f3, f4])
         db.session.commit()
 
 
@@ -354,10 +356,35 @@ class FindingCase(unittest.TestCase):
         finding_in_db = db.session.query(Finding).filter_by(phrase_id=phrase_in_db.id).first()
         self.assertNotEqual(finding_in_db, None)
 
+    def test_view_phrase_in_list(self):
+        # not authenticated
+        response = self.app.client.get('/phrases', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('project manager', str(response.data))
+
+    def test_view_phrase_in_api(self):
+        # phrase does not appear because no finding
+        response = self.app.client.get('/api/phrases', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('"phraseText": "project manager"', str(response.data))
+        self.assertIn('"phraseCount": 2', str(response.data))
+
+    def test_phrase_not_in_list_if_no_findings(self):
+        # no findings so not in list
+        response = self.app.client.get('/phrases', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('nurse', str(response.data))
+
+    def test_phrase_not_in_list_if_few_jobs(self):
+        # too few jobs so not in list
+        response = self.app.client.get('/phrases', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('nurse', str(response.data))
+
     def test_view_finding(self):
         response = self.app.client.get('/phrases/project-manager', content_type='html/text')
         self.assertEqual(response.status_code, 200)
-        # self.assertIn('indeed results for _project_manager_', str(response.data))
+        self.assertIn('$110,000', str(response.data))
 
     def test_view_finding_in_api(self):
         # check api
