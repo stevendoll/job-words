@@ -7,6 +7,32 @@
 {% block styles %}
 {{super()}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dc/3.0.6/dc.min.css">
+    <style>
+
+/*.pulsor { display: inline-block; line-height: 50px; margin: 10px;
+width: 50px; height: 50px; border-radius: 50%;
+box-shadow: 0 0 1px #0099CC; background-color: #121212;
+text-shadow: 0 0 5px #0099CC; font-family: sans-serif; font-weight: bold; color: #0099CC; text-align: center;   
+cursor: pointer; 
+}*/
+.pulsor {
+    -webkit-animation: pulsate .8s infinite alternate;
+    -moz-animation: pulsate .8s infinite alternate;
+    -animation: pulsate .8s infinite alternate;
+}
+@-webkit-keyframes pulsate {
+    from { box-shadow: 0 0 8px #0099CC; }
+    to { box-shadow: 0 0 20px #0099CC; }
+}
+@-moz-keyframes pulsate {
+    from { box-shadow: 0 0 10px #121212; }
+    to { box-shadow: 0 0 20px #0099CC; }
+}
+@keyframes pulsate {
+    from { box-shadow: 0 0 10px #121212; }
+    to { box-shadow: 0 0 20px #0099CC; }
+}
+    </style>
 {% endblock %}
 
 {% block navbar %}
