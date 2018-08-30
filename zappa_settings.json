@@ -6,6 +6,8 @@
         "project_name": "job-words",
         "runtime": "python3.6",
         "s3_bucket": "zappa-4sg4qo2ll",
-        "slim_handler": true
+        "slim_handler": true,
+        "certificate_arn": "arn:aws:acm:us-east-1:600775874112:certificate/dbd6d4d8-2fb4-4e2a-a586-1eb80fa884c2",
+        "domain": "resumopoly.com",
     }
 }
