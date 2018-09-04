@@ -21,6 +21,10 @@ def index():
 def charts():
     return render_template('charts.html', title='Home')
 
+@app.route('/about')
+def about():
+    return render_template('about.html', title='About')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -97,6 +101,15 @@ def phrase_list():
     
     return render_template('phrase-list.html', title='Search Phrases', phrases=phrases, my_phrases=my_phrases, phrase=phrase)
 
+@app.route('/phrases/latest')
+def phrase_latest():
+
+    phrases = Phrase.get_all()
+
+    
+    return render_template('phrase-latest.html', title='Latest Phrases', phrases=phrases)
+
+
 @app.route('/phrases/<phrase_slug>')
 def phrase_view(phrase_slug):
 
@@ -132,7 +145,7 @@ def document_list():
     
     return render_template('document-list.html', title='All documents', documents=documents)
 
-@app.route('/documents/new')
+@app.route('/new-documents')
 def create_document():
     form = DocumentForm()
     return render_template('document-form.html', title='Create document', form=form)
