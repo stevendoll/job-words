@@ -1,22 +1,12 @@
 # job-words
 
-## Design
+## About Resumopoly
 
-users
-documents (with dates)
-phrases (with date)
-locations
-location-phrase-job-count
-related-phrases
+Resumopoly is a portfolio project of Steven Doll with data scraping and wrangling (thanks Indeed.com), Natural Language Processing (NLP), Python Flask, d3.js and dc.js for interactive dashboards, Test Driven Development (TDD), AWS Lambda deployment, and Github/Pivotal Tracker integration.
 
-first feature:
+## Contact
 
-user types phrase into search box. 
-phrase is added to table. 
-phrase is searched in indeed
-body is added to phrase record
-body is parsed for job count at various salaries
-body is parsed for job count at various locations
-
-phrase is not looked up if it was looked up in past 30 days
-
+- https://www.linkedin.com/in/stevendoll/
+- https://github.com/stevendoll/job-words
+- https://www.pivotaltracker.com/n/projects/2186687
+- steven@clearskies.co

@@ -8,11 +8,18 @@
 
 <table>
 
+	<tr>
+		<th>Title</th>
+		<th>Body</th>
+		<th>Created</th>
+		<th>Updated</th>
+	</tr>
+
 	{% for this_document in documents %}
 
 	<tr>
 		<td>{{ this_document.title }} </td>
-		<td>{{ this_document.body }} </td>
+		<td>{{ this_document.body[0:300] if this_document.body }}... </td>
 		<td>{{ this_document.created_date }} </td>
 		<td>{{ this_document.updated_date }} </td>
 	</tr>

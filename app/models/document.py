@@ -73,6 +73,16 @@ class Document(db.Model):
 
         return document
 
+    @staticmethod
+    def get_by_slug(slug):
+
+        this_document = None
+
+        if len(slug) > 0:
+
+            document_in_db = Document.query.filter_by(slug=slug).first()
+
+        return document_in_db
 
     # @staticmethod
     # def get_document(search_document):

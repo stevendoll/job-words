@@ -335,8 +335,8 @@ class FindingCase(unittest.TestCase):
         # create findings
         f1 = Finding(phrase=p1, created_date=dt.datetime(2018,4,1,0,0,0), mean_salary=110000, jobs_count=30000, jobs_above_100k_count=5000)
         f2 = Finding(phrase=p3, created_date=dt.datetime(2018,8,15,0,0,0), mean_salary=85000, jobs_count=50000, jobs_above_100k_count=6000)
-        f3 = Finding(phrase=p3, created_date=dt.datetime(2018,8,15,0,0,0), mean_salary=95000, jobs_count=60000, jobs_above_100k_count=7000)
-        f4 = Finding(phrase=p4, created_date=dt.datetime(2018,8,15,0,0,0), mean_salary=95000, jobs_count=5, jobs_above_100k_count=1)
+        f3 = Finding(phrase=p3, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=95000, jobs_count=60000, jobs_above_100k_count=7000)
+        f4 = Finding(phrase=p4, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=95000, jobs_count=5, jobs_above_100k_count=1)
         db.session.add_all([f1, f2, f3, f4])
         db.session.commit()
 
@@ -560,7 +560,7 @@ class UserDocumentCase(unittest.TestCase):
         user_document_in_db = db.session.query(UserDocument).filter_by(document_id=document_in_db.id, user_id=user_in_db.id).first()
         self.assertEqual(user_document_in_db.user_id, user_in_db.id)
 
-    def test_view_user_document(self):
+    def test_view_user_documents(self):
         # authenticated
         self.login('mary','marypassword')
         response = self.app.client.get('/users/mary/documents', content_type='html/text')
@@ -581,6 +581,40 @@ class UserDocumentCase(unittest.TestCase):
         response = self.app.client.get('/users/mary/documents', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn('mary cv', str(response.data))
+
+    def test_view_user_document(self):
+        # authenticated
+        self.login('mary','marypassword')
+        response = self.app.client.get('/users/mary/documents/mary-resume', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('jack resume', str(response.data))
+        self.assertNotIn('mary linkedin', str(response.data))
+        self.assertIn('mary resume', str(response.data))
+
+    # a different user can't see the document with the slug
+    def test_view_user_document_authorized(self):
+        self.login('john','johnpassword')
+        response = self.app.client.get('/users/mary/documents/mary-resume', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('mary resume', str(response.data))
+
+        response = self.app.client.get('/users/john/documents/mary-resume', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('mary resume', str(response.data))
+
+    # the document shows the top 5 phrases by most recent finding value
+
+    # /api/documents/{slug}/phrases loaded in background
+    def test_view_document_phrases_in_api(self):
+        # check api
+        response = self.app.client.get('/api/documents/mary-resume/phrases', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('"jobsCount": null', str(response.data))
+        self.assertIn('"jobsCount": 30000', str(response.data))
+        
+        # only most recent finding
+        self.assertNotIn('"jobsCount": 50000', str(response.data))
+        self.assertIn('"jobsCount": 60000', str(response.data))
 
 
 if __name__ == '__main__':

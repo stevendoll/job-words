@@ -65,7 +65,7 @@ def user_list():
 
     users = User.get_all()
     
-    return render_template('user.html', title='Users', users=users)
+    return render_template('user-list.html', title='Users', users=users)
 
 @app.route('/phrases')
 def phrase_list():
@@ -125,7 +125,7 @@ def user_phrase_list(username):
 
     phrases = User.get_by_username(username).phrases
     
-    return render_template('user-phrase.html', title='User Phrases', phrases=phrases)
+    return render_template('user-phrase-list.html', title='User Phrases', phrases=phrases)
 
 
 @app.route('/documents', methods=['GET', 'POST'])
@@ -157,7 +157,17 @@ def user_document_list(username):
 
     documents = User.get_by_username(username).documents
     
-    return render_template('user-document.html', title='User Documents', documents=documents)
+    return render_template('user-document-list.html', title='User Documents', documents=documents)
+
+@app.route('/users/<username>/documents/<slug>')
+def user_document(username, slug):
+    
+    document = Document.get_by_slug(slug=slug)
+
+    phrases = Phrase.get_all()
+
+    return render_template('user-document.html', title='Document Analysis', phrases=phrases, document=document)
+
 
 @app.route('/api/phrases')
 def phrase_list_api():
