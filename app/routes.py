@@ -4,7 +4,7 @@ import re
 import json
 from app import app, db
 from app.forms import LoginForm, SignupForm, DocumentForm
-from app.models import User, Phrase, UserPhrase, Finding, Document, UserDocument
+from app.models import User, Phrase, UserPhrase, Finding, Document
 
 @app.route('/')
 @app.route('/index')
@@ -137,15 +137,14 @@ def document_list():
         if current_user.is_authenticated:
             Document.add_document(title=form.title.data, body=form.body.data, user=current_user)
         else:
-            Document.add_document(title=form.title.data, body=form.body.data, user=None)
-
-        flash('Document added!')
+            flash('Please register or login to analyze documents.')
 
     documents = Document.get_all()
     
     return render_template('document-list.html', title='All documents', documents=documents)
 
-@app.route('/new-documents')
+@app.route('/documents/new')
+@login_required
 def create_document():
     form = DocumentForm()
     return render_template('document-form.html', title='Create document', form=form)
@@ -159,14 +158,16 @@ def user_document_list(username):
     
     return render_template('user-document-list.html', title='User Documents', documents=documents)
 
-@app.route('/users/<username>/documents/<slug>')
-def user_document(username, slug):
+@app.route('/documents/<slug>')
+@login_required
+def document(slug):
     
     document = Document.get_by_slug(slug=slug)
 
-    phrases = Phrase.get_all()
+    phrases = Document.get_phrases(document=document)
 
     return render_template('user-document.html', title='Document Analysis', phrases=phrases, document=document)
+
 
 
 @app.route('/api/phrases')
@@ -179,16 +180,26 @@ def phrase_list_api():
     phrase_list = []
 
     for phrase in phrases:
-        if phrase.findings and phrase.findings[-1].jobs_count and phrase.findings[-1].jobs_count > 10:
-            phrase_list.append(phrase.serialize())
+        phrase_list.append(phrase.serialize())
 
-    # phrases associated with user and/or document
-    user_phrases = UserPhrase.get_all()
+    result['phrases'] = phrase_list
+    result['phraseCount'] = len(phrase_list)
+    
+    return json.dumps(result)
 
-    for user_phrase in user_phrases:
-        if user_phrase.phrase.findings and user_phrase.phrase.findings[-1].jobs_count and user_phrase.phrase.findings[-1].jobs_count > 10:
-            phrase_list.append(user_phrase.serialize())
-            
+@app.route('/api/documents/<slug>/phrases')
+def document_phrase_list_api(slug):
+
+    document = Document.get_by_slug(slug=slug)
+
+    phrases = Document.get_phrases(document=document)
+
+    result = {}
+    phrase_list = []
+
+    for phrase in phrases:
+        phrase_list.append(phrase.serialize())
+
 
     result['phrases'] = phrase_list
     result['phraseCount'] = len(phrase_list)

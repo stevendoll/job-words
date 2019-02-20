@@ -6,6 +6,9 @@ __pycache__/
 .DS_Store
 .aws_credentials
 .devsetup
+test.db
+zappa_settings.json
+app.db
 
 # C extensions
 *.so

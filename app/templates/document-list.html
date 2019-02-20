@@ -18,7 +18,7 @@
 	{% for this_document in documents %}
 
 	<tr>
-		<td>{{ this_document.title }} </td>
+		<td><a href="{{ url_for('document', slug=this_document.slug) }}">{{ this_document.title }}</a></td>
 		<td>{{ this_document.body[0:300] if this_document.body }}... </td>
 		<td>{{ this_document.created_date }} </td>
 		<td>{{ this_document.updated_date }} </td>

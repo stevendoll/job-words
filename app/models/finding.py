@@ -12,8 +12,6 @@ import pandas as pd
 import numpy as np
 import scipy.stats as stats
 
-
-
 from app import db, login
 
 INDEED_SEARCH_URL = 'http://www.indeed.com/jobs?q='
@@ -24,7 +22,7 @@ STALE_FINDINGS_DAYS = 30
 
 class Finding(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    phrase_id = db.Column(db.Integer, db.ForeignKey('phrase.id'))
+    phrase_id = db.Column(db.Integer, db.ForeignKey('phrase.id'), nullable=False)
     created_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     phrase = db.relationship('Phrase')
     indeed_content = db.Column(db.Text())
@@ -54,6 +52,8 @@ class Finding(db.Model):
     jobs_above_145k_count = db.Column(db.Float)
     jobs_above_150k_count = db.Column(db.Float)
 
+    __mapper_args__ = {"order_by":created_date}
+
     def __repr__(self):
         return '<Finding {}>'.format(self.phrase.phrase)
 
@@ -65,7 +65,7 @@ class Finding(db.Model):
     def analyze(phrase):
 
         # check if there is a recent finding for this phrase
-        this_finding = db.session.query(Finding).filter_by(phrase=phrase).filter(Finding.created_date>(dt.datetime.utcnow() - timedelta(days=STALE_FINDINGS_DAYS))).first()       
+        this_finding = Finding.query.filter_by(phrase=phrase).filter(Finding.created_date>(dt.datetime.utcnow() - timedelta(days=STALE_FINDINGS_DAYS))).first()       
 
         # if a recent one is not in the database, look it up
         if not this_finding:

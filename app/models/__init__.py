@@ -3,4 +3,6 @@ from .phrase import Phrase
 from .userphrase import UserPhrase
 from .finding import Finding
 from .document import Document
-from .userdocument import UserDocument
+
+from app import models
+

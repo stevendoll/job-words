@@ -8,15 +8,21 @@
 
         <table>
 
-        {% for this_document in documents %}
+    <tr>
+        <th>Title</th>
+        <th>Body</th>
+        <th>Created</th>
+        <th>Updated</th>
+    </tr>
 
-        <tr>
-        	<td>{{ this_document.document.title }} </td>
-            <td>{{ this_document.document.slug }} </td>
-            <td>{{ this_document.body[0:300] if this_document.body }} </td>
-        	<td>{{ this_document.document.created_date }} </td>
-        	<td>{{ this_document.document.updated_date }} </td>
-        </tr>
+    {% for this_document in documents %}
+
+    <tr>
+        <td><a href="{{ url_for('document', slug=this_document.slug) }}">{{ this_document.title }}</a></td>
+        <td>{{ this_document.body[0:300] if this_document.body }}... </td>
+        <td>{{ this_document.created_date }} </td>
+        <td>{{ this_document.updated_date }} </td>
+    </tr>
         {% endfor %}
     </table>
     {% else %}

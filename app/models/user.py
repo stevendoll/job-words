@@ -4,16 +4,15 @@ from flask_login import UserMixin
 from hashlib import md5
 from sqlalchemy.sql import func
 
-
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), index=True, unique=True)
-    email = db.Column(db.String(120), index=True, unique=True)
+    username = db.Column(db.String(64), index=True, unique=True, nullable=False)
+    email = db.Column(db.String(120), index=True, unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
     created_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_date = db.Column(db.DateTime(timezone=True), onupdate=func.now())
     phrases = db.relationship('UserPhrase')
-    documents = db.relationship('UserDocument')
+    documents = db.relationship('Document')
 
     def __repr__(self):
         return '<User {}>'.format(self.username)

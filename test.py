@@ -10,7 +10,7 @@ from config import basedir
 
 app.config.from_object(TestConfig)
 
-from app.models import User, Phrase, UserPhrase, Finding, Document, UserDocument
+from app.models import User, Phrase, UserPhrase, Finding, Document
 
 
 class StartupCase(unittest.TestCase):
@@ -337,7 +337,8 @@ class FindingCase(unittest.TestCase):
         f2 = Finding(phrase=p3, created_date=dt.datetime(2018,8,15,0,0,0), mean_salary=85000, jobs_count=50000, jobs_above_100k_count=6000)
         f3 = Finding(phrase=p3, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=95000, jobs_count=60000, jobs_above_100k_count=7000)
         f4 = Finding(phrase=p4, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=95000, jobs_count=5, jobs_above_100k_count=1)
-        db.session.add_all([f1, f2, f3, f4])
+        f5 = Finding(phrase=p3, created_date=dt.datetime(2019,2,10,0,0,0), mean_salary=92000, jobs_count=62000, jobs_above_100k_count=7000)
+        db.session.add_all([f1, f2, f3, f4, f5])
         db.session.commit()
 
 
@@ -355,6 +356,11 @@ class FindingCase(unittest.TestCase):
         phrase_in_db = db.session.query(Phrase).filter_by(phrase_text='engineer').first()
         finding_in_db = db.session.query(Finding).filter_by(phrase_id=phrase_in_db.id).first()
         self.assertNotEqual(finding_in_db, None)
+
+    def test_get_latest_finding(self):
+        # search phrase
+        phrase_in_db = db.session.query(Phrase).filter_by(phrase_text='engineer').first()
+        self.assertEqual(phrase_in_db.mean_salary, 95000)
 
     def test_view_phrase_in_list(self):
         # not authenticated
@@ -447,80 +453,6 @@ class DocumentCase(unittest.TestCase):
     def setUp(self):
         UserCase.setUp(self)
 
-        # search phrase
-        d1 = Document(title='my resume', slug='my-resume')
-        db.session.add(d1)
-        db.session.commit()
-
-    def tearDown(self):
-        UserCase.tearDown(self)
-
-    def login(self, username, password):
-        return UserCase.login(self, username, password)
-
-    def logout(self):
-        return UserCase.logout(self)
-
-    def create_document(self, title, body):
-        return self.app.client.post('/documents', data=dict(
-            title=title,
-            body=body
-        ), follow_redirects=True)
-
-    def test_get_document(self):
-        # search phrase
-        title = 'my resume'
-        document_in_db = db.session.query(Document).filter_by(title=title).first()
-        self.assertEqual(document_in_db.title, title)
-
-    def test_view_document_in_list(self):
-        # not authenticated
-        response = self.app.client.get('/documents', content_type='html/text')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('my resume', str(response.data))
-
-    def test_create_document(self):
-        title = 'john resume'
-        body = 'minister'
-        self.create_document(title, body)
-        response = self.app.client.get('/documents', content_type='html/text')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('john resume', str(response.data))
-
-    def test_generate_document_slug(self):
-
-        # create a new document with the same title
-        title = 'my resume'
-        body = 'minister'
-        self.create_document(title, body)
-        response = self.app.client.get('/documents', content_type='html/text')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('my resume', str(response.data))
-        
-        # check if 2 documents in db
-        documents_in_db = db.session.query(Document).filter_by(title=title).all()
-        self.assertEqual(len(documents_in_db), 2)
-
-        # check that slugs are different
-        documents_in_db = db.session.query(Document).filter_by(slug='my-resume').all()
-        self.assertEqual(len(documents_in_db), 1)
-
-
-    def test_analyze_document_phrases(self):
-        title = 'steven resume'
-        body = 'A confident digital product manager, data scientist, MBA and entrepreneur, I deliver outcomes - not outputs.'
-        self.create_document(title, body)
-        response = self.app.client.get('/phrases', content_type='html/text')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('mba', str(response.data))
-        self.assertIn('data scientist', str(response.data))
-
-
-
-class UserDocumentCase(unittest.TestCase):
-    def setUp(self):
-        UserCase.setUp(self)
-
         # create users
         u1 = User(username='jack', email='jack@example.com')
         u2 = User(username='mary', email='mary@example.com')
@@ -528,18 +460,36 @@ class UserDocumentCase(unittest.TestCase):
         db.session.add_all([u1, u2])
 
         # create phrases
-        d1 = Document(title='jack resume', slug='jack-resume')
-        d2 = Document(title='mary linkedin', slug='mary-linkedin')
-        d3 = Document(title='mary resume', slug='mary-resume')
+        d1 = Document(title='jack resume', slug='jack-resume', user=u1)
+        d2 = Document(title='mary linkedin', slug='mary-linkedin', user=u2)
+        d3 = Document(title='mary resume', slug='mary-resume', user=u2)
         db.session.add_all([d1, d2, d3])
 
-        # create user phrases
-        ud1 = UserDocument(user=u1, document=d1)
-        ud2 = UserDocument(user=u2, document=d2)
-        ud3 = UserDocument(user=u2, document=d3)
-        db.session.add_all([ud1, ud2, ud3])
-        db.session.commit()
+        # create phrases
+        p1 = Phrase(phrase_text='project manager', slug='project-manager')
+        p2 = Phrase(phrase_text='nurse', slug='nurse')
+        p3 = Phrase(phrase_text='engineer', slug='engineer')
+        p4 = Phrase(phrase_text='mechanical engineer', slug='mechanical-engineer')
+        p5 = Phrase(phrase_text='tiger trainer', slug='tiger-trainer')
+        db.session.add_all([p1, p2, p3, p4, p5])
 
+        # create findings
+        f1 = Finding(phrase=p1, created_date=dt.datetime(2018,4,1,0,0,0), mean_salary=110000, jobs_count=30000, jobs_above_100k_count=5000)
+        f2 = Finding(phrase=p3, created_date=dt.datetime(2018,8,15,0,0,0), mean_salary=85000, jobs_count=50000, jobs_above_100k_count=6000)
+        f3 = Finding(phrase=p3, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=95000, jobs_count=60000, jobs_above_100k_count=7000)
+        f4 = Finding(phrase=p4, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=100000, jobs_count=40000, jobs_above_100k_count=7000)
+        f5 = Finding(phrase=p5, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=60000, jobs_count=5, jobs_above_100k_count=1)
+        db.session.add_all([f1, f2, f3, f4, f5])
+
+        # associate phrases with users and documents
+        up1 = UserPhrase(user=u1, phrase=p1, document=d1) # jack resume has project manager
+        up2 = UserPhrase(user=u2, phrase=p4, document=d2) # mary linkedin profile has mechanical engineer
+        up3 = UserPhrase(user=u2, phrase=p3, document=d3) # mary resume has engineer
+        up4 = UserPhrase(user=u1, phrase=p3, document=d1) # jack resume has engineer
+        db.session.add_all([up1, up2, up3, up4])
+
+
+        db.session.commit()
 
     def tearDown(self):
         UserCase.tearDown(self)
@@ -550,15 +500,77 @@ class UserDocumentCase(unittest.TestCase):
     def logout(self):
         return UserCase.logout(self)
 
-    def create_document(self, title, body):
-        return DocumentCase.create_document(self, title, body)
+    def create_document(self, title, body, username, password):
+        self.login(username, password)
+
+        return self.app.client.post('/documents', data=dict(
+            title=title,
+            body=body
+        ), follow_redirects=True)
+
+    def test_get_document(self):
+        # search phrase
+        title = 'jack resume'
+        document_in_db = db.session.query(Document).filter_by(title=title).first()
+        self.assertEqual(document_in_db.title, title)
+
+    def test_view_document_in_list(self):
+        # not authenticated
+        response = self.app.client.get('/documents', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('jack resume', str(response.data))
+
+    def test_create_document(self):
+        title = 'mary resume'
+        body = 'pilot'
+        username = 'mary'
+        password = 'marypassword'
+        self.create_document(title, body, username, password)
+        response = self.app.client.get('/documents', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('mary resume', str(response.data))
+
+    def test_generate_document_slug(self):
+
+        # create a new document with the same title
+        title = 'mary resume'
+        body = 'minister'
+        username = 'mary'
+        password = 'marypassword'
+        self.create_document(title, body, username, password)
+        response = self.app.client.get('/documents', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('mary resume', str(response.data))
+        
+        # check if 2 documents in db
+        documents_in_db = db.session.query(Document).filter_by(title=title).all()
+        self.assertEqual(len(documents_in_db), 2)
+
+        # check that slugs are different
+        documents_in_db = db.session.query(Document).filter_by(slug='mary-resume').all()
+        self.assertEqual(len(documents_in_db), 1)
+
+    def test_get_latest_finding_in_document_phrases(self):
+        # search phrase
+        document_in_db = Document.query.filter_by(slug='mary-resume').first()
+        self.assertEqual(document_in_db.phrases[0].phrase.mean_salary, 95000)
+
+    def test_analyze_document_phrases(self):
+        title = 'mary new resume'
+        body = 'A confident digital product manager, data scientist, MBA and entrepreneur, I deliver outcomes - not outputs.'
+        username = 'mary'
+        password = 'marypassword'
+        self.create_document(title, body, username, password)
+        response = self.app.client.get('/phrases', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('mba', str(response.data))
+        self.assertIn('data scientist', str(response.data))
 
     def test_get_user_document(self):
         # search phrase
         user_in_db = db.session.query(User).filter_by(username='jack').first()
         document_in_db = db.session.query(Document).filter_by(title='jack resume').first()
-        user_document_in_db = db.session.query(UserDocument).filter_by(document_id=document_in_db.id, user_id=user_in_db.id).first()
-        self.assertEqual(user_document_in_db.user_id, user_in_db.id)
+        self.assertEqual(document_in_db.user_id, user_in_db.id)
 
     def test_view_user_documents(self):
         # authenticated
@@ -570,14 +582,16 @@ class UserDocumentCase(unittest.TestCase):
         self.assertIn('mary resume', str(response.data))
 
     def test_create_user_document(self):
-        self.login('mary','marypassword')
+        username = 'mary'
+        password = 'marypassword'
+        self.login(username, password)
         response = self.app.client.get('/users/mary/documents', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn('mary resume', str(response.data))
 
         title = 'mary cv'
         body = 'mary new body'
-        self.create_document(title, body)
+        self.create_document(title, body, username, password)
         response = self.app.client.get('/users/mary/documents', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn('mary cv', str(response.data))
@@ -585,22 +599,22 @@ class UserDocumentCase(unittest.TestCase):
     def test_view_user_document(self):
         # authenticated
         self.login('mary','marypassword')
-        response = self.app.client.get('/users/mary/documents/mary-resume', content_type='html/text')
+        response = self.app.client.get('/documents/mary-resume', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertNotIn('jack resume', str(response.data))
         self.assertNotIn('mary linkedin', str(response.data))
         self.assertIn('mary resume', str(response.data))
 
     # a different user can't see the document with the slug
-    def test_view_user_document_authorized(self):
-        self.login('john','johnpassword')
-        response = self.app.client.get('/users/mary/documents/mary-resume', content_type='html/text')
-        self.assertEqual(response.status_code, 200)
-        self.assertNotIn('mary resume', str(response.data))
+    # def test_view_user_document_authorized(self):
+    #     self.login('john','johnpassword')
+    #     response = self.app.client.get('/documents/mary-resume', content_type='html/text')
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertNotIn('mary resume', str(response.data))
 
-        response = self.app.client.get('/users/john/documents/mary-resume', content_type='html/text')
-        self.assertEqual(response.status_code, 200)
-        self.assertNotIn('mary resume', str(response.data))
+    #     response = self.app.client.get('/documents/mary-resume', content_type='html/text')
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertNotIn('mary resume', str(response.data))
 
     # the document shows the top 5 phrases by most recent finding value
 
@@ -608,13 +622,22 @@ class UserDocumentCase(unittest.TestCase):
     def test_view_document_phrases_in_api(self):
         # check api
         response = self.app.client.get('/api/documents/mary-resume/phrases', content_type='html/text')
+        # response = self.app.client.get('/api/documents/jack-resume/phrases', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertNotIn('"jobsCount": null', str(response.data))
-        self.assertIn('"jobsCount": 30000', str(response.data))
+
+        # engineer
+        self.assertIn('"phraseText": "engineer"', str(response.data))
         
-        # only most recent finding
-        self.assertNotIn('"jobsCount": 50000', str(response.data))
-        self.assertIn('"jobsCount": 60000', str(response.data))
+        # not mechanical-engineer, that is in her linkedin profile
+        self.assertNotIn('"phraseText": "mechanical engineer"', str(response.data))
+
+        # not project manager, that is in jack's resume
+        self.assertNotIn('"phraseText": "project manager"', str(response.data))
+        
+        # only most recent finding for engineer
+        self.assertNotIn('"meanSalary": 85000', str(response.data))
+        self.assertIn('"meanSalary": 95000', str(response.data))
 
 
 if __name__ == '__main__':
