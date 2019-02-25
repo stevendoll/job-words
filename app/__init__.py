@@ -37,6 +37,9 @@ login.login_view = 'login'
 
 app.logger.setLevel(logging.INFO)
 app.logger.info('App startup')
+app.logger.info(app.config['SQLALCHEMY_DATABASE_URI'])
+
+
 
 from app import routes, models
 

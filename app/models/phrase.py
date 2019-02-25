@@ -13,8 +13,8 @@ PHRASE_MINIMUM_JOBS = 100
 
 class Phrase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    phrase_text = db.Column(db.Text(), index=True, unique=True, nullable=False)
-    slug = db.Column(db.String(64), index=True, unique=True, nullable=False)
+    phrase_text = db.Column(db.Text(), unique=True, nullable=False)
+    slug = db.Column(db.String(256), index=True, unique=True, nullable=False)
     search_count = db.Column(db.Integer, default=1)
     findings = db.relationship('Finding')
     user_phrases = db.relationship('UserPhrase')
