@@ -10,6 +10,13 @@ test.db
 zappa_settings.json
 app.db
 
+# lambda files
+*.zip
+*.tar.gz
+
+# nltk
+nltk_data/
+
 # C extensions
 *.so
 

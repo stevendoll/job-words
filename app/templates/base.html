@@ -81,6 +81,21 @@ cursor: pointer;
     <img src="/static/images/uncle_moneybags_small.png" width="36" height="30" class="d-inline-block align-top" alt="Resumopoly: job search word analysis">
     Resumopoly
   </a>
+
+            <!-- <ul class="nav navbar-nav">
+                {% if current_user.is_anonymous %}
+                <li><a href="{{ url_for('about') }}">I</a></li>
+                {% else %}
+                <li><a href="{{ url_for('phrase_list') }}">Phrases</a></li>
+                <li><a href="{{ url_for('user_phrase_list', username=current_user.username) }}">My Phrases</a></li>
+                <li><a href="{{ url_for('user_document_list', username=current_user.username) }}">My Documents</a></li>
+                <li><a href="{{ url_for('user_list') }}">Users</a></li>
+                <li><a href="{{ url_for('document_list') }}">Documents</a></li>  
+                <li><a href="{{ url_for('create_document') }}">New Document</a></li>                
+                {% endif %}
+            </ul> -->
+
+
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarHeader" aria-controls="navbarHeader" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
@@ -134,21 +149,19 @@ cursor: pointer;
     </div>
 </nav> -->
 
-{% if not current_user.is_anonymous %}
-<h1>Hi, {{ current_user.username }}!</h1>
-{% endif %}
-
-{% with messages = get_flashed_messages() %}
+{% with messages = get_flashed_messages(with_categories=true) %}
 {% if messages %}
-
-{% for message in messages %}
-<div class="alert alert-success" role="alert">
-  {{ message }}
-</div>
+{% for category, message in messages %}
+<!-- categories: message, error, warning, success  -->
+  <div class="alert alert-{{ 'success' if category == 'success' else 'warning' if category == 'warning' else 'danger' if category == 'error' else 'primary' }} alert-dismissible fade show" role="alert">{{ message }}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
 {% endfor %}
-
 {% endif %}
 {% endwith %}
+
 {% endblock %}
 
 

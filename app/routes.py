@@ -4,7 +4,49 @@ import re
 import json
 from app import app, db
 from app.forms import LoginForm, SignupForm, DocumentForm
-from app.models import User, Phrase, UserPhrase, Finding, Document
+from app.models import User, Role, Phrase, UserPhrase, Finding, Document
+
+# check user authorization
+def roles_accepted(*roles):
+    def wrapper(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            # user has no roles or no roles that match
+            if not current_user.get_roles() or not (list(set(roles) & set(current_user.get_roles()))):
+                flash('Not authorized. You do not have a role that allows access to this feature.', 'warning')
+                return redirect(url_for('index'))
+            return f(*args, **kwargs)
+        return wrapped
+    return wrapper
+
+@app.route('/initialize')
+def setup():
+
+    admin_users = app.config['ADMINISTRATORS'].split(',')
+    
+    # check if roles empty
+    if Role.query.first() == None:
+
+        # add roles
+        r1 = Role(role_id='Admin', description='Administrator role.')
+        db.session.add_all([r1])
+        db.session.commit()
+
+        # add admins
+        for username in admin_users:
+
+            user = User.get_by_username(username)
+            if user:
+                user.add_role('Admin')
+                app.logger.info('Granted Admin role: %s', user.username)
+            else:
+                app.logger.warning('Unable to grant Admin role: %s', username)
+
+
+        flash('Dashboard initialized', 'success')
+    else:
+        flash('Already initialized', 'error')
+    return redirect(url_for('index'))
 
 @app.route('/')
 @app.route('/index')
@@ -36,6 +78,7 @@ def login():
             flash('Invalid username or password')
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
+        flash('Welcome back ' + user.username)
         return redirect(url_for('index'))
     return render_template('login.html', title='Sign In', form=form)
 
