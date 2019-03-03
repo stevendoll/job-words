@@ -8,74 +8,68 @@
 
 {% if phrase.findings %}
 
-<table>
+<div class="jumbotron" style="text-align: center; margin-top: 10px;">
 
-	<tr>
-		<th>Indeed</th>
-		<th>Created</th>
-		<th>Updated</th>
-		<th>Mean Salary</th>
-		<th>Salary Sth</th>
-		<th>Jobs</th>
-		<th>Jobs above $50k</th>
-		<th>Jobs above $55k</th>
-		<th>Jobs above $60k</th>
-		<th>Jobs above $65k</th>
-		<th>Jobs above $70k</th>
-		<th>Jobs above $75k</th>
-		<th>Jobs above $80k</th>
-		<th>Jobs above $85k</th>
-		<th>Jobs above $90k</th>
-		<th>Jobs above $95k</th>
-		<th>Jobs above $100k</th>
-		<th>Jobs above $105k</th>
-		<th>Jobs above $110k</th>
-		<th>Jobs above $115k</th>
-		<th>Jobs above $120k</th>
-		<th>Jobs above $125k</th>
-		<th>Jobs above $130k</th>
-		<th>Jobs above $135k</th>
-		<th>Jobs above $140k</th>
-		<th>Jobs above $145k</th>
-		<th>Jobs above $150k</th>
 
-	</tr>
+<div class="row">
+    <div class="col-md-3 d-none d-lg-block">
+<img src="/static/images/uncle_moneybags.png">
+    </div>
+    <div class="col-md-9">
 
-	{% for this_finding in phrase.findings %}
+<h1 style="text-align: left;">Job market for <i class="fa fa-hand-point-right"></i> {{ phrase.phrase_text }}</h1>
 
-	<tr>
-		<td>{{ this_finding.indeed_content[0:50] if this_finding.indeed_content }} </td>
-		<td>{{ this_finding.created_date }} </td>
-		<td>{{ this_finding.updated_date }} </td>
-		<td>{{ '${:,.0f}'.format(this_finding.mean_salary) }} </td>
-		<td>{{ this_finding.sigma_salary }} </td>
-		<td>{{ this_finding.jobs_count }} </td>
-		<td>{{ this_finding.jobs_above_50k_count }} </td>
-		<td>{{ this_finding.jobs_above_55k_count }} </td>
-		<td>{{ this_finding.jobs_above_60k_count }} </td>
-		<td>{{ this_finding.jobs_above_65k_count }} </td>
-		<td>{{ this_finding.jobs_above_70k_count }} </td>
-		<td>{{ this_finding.jobs_above_75k_count }} </td>
-		<td>{{ this_finding.jobs_above_80k_count }} </td>
-		<td>{{ this_finding.jobs_above_85k_count }} </td>
-		<td>{{ this_finding.jobs_above_90k_count }} </td>
-		<td>{{ this_finding.jobs_above_95k_count }} </td>
-		<td>{{ this_finding.jobs_above_100k_count }} </td>
-		<td>{{ this_finding.jobs_above_105k_count }} </td>
-		<td>{{ this_finding.jobs_above_110k_count }} </td>
-		<td>{{ this_finding.jobs_above_115k_count }} </td>
-		<td>{{ this_finding.jobs_above_120k_count }} </td>
-		<td>{{ this_finding.jobs_above_125k_count }} </td>
-		<td>{{ this_finding.jobs_above_130k_count }} </td>
-		<td>{{ this_finding.jobs_above_135k_count }} </td>
-		<td>{{ this_finding.jobs_above_140k_count }} </td>
-		<td>{{ this_finding.jobs_above_145k_count }} </td>
-		<td>{{ this_finding.jobs_above_150k_count }} </td>
+  <p style="text-align: left; padding: 10px 0px 10px 0px;">{% if phrase.search_count == 1 %}New search phrase!{% else %}This phrase has been searched {{ phrase.search_count }} times.{% endif %} There are {{ '{:,.0f}'.format(phrase.findings[-1].jobs_count) if phrase.findings[-1].jobs_count }} jobs in this market segment with an average salary of {{ '${:,.0f}'.format(phrase.findings[-1].mean_salary) if phrase.findings[-1].mean_salary }}. There are {{ '{:,.0f}'.format(phrase.findings[-1].jobs_above_100k_count) if phrase.findings[-1].jobs_above_100k_count }} jobs over $100k.</p>
 
-	</tr>
-	{% endfor %}
+<div class="row">
+    <div class="col-md-6">
 
-</table>
+<form class="form-inline justify-content-center" method="get" action="{{ url_for('phrase_list') }}">
+          <div class="input-group pulsor">
+      <input class="form-control border-secondary border-right-0 rounded-0" type="text" name="term" placeholder="Search phrase">
+      <span class="input-group-append">
+        <button class="btn btn-outline-secondary border-left-0 rounded-0 rounded-right" type="submit">
+            <i class="fa fa-search"></i>
+        </button>
+      </span>
+</div>
+        </form>
+
+        <p style="font-size: medium; padding: 10px 0px 10px 0px;"><a href="{{ url_for('create_document') }}">Scan your resume or Linkedin profile</a></p>
+
+    
+</div>
+
+<div class="col-md-6">
+	<p>Sorry, Beta Invitations are full. <br/>Sign up for updates!</p>
+
+  <!-- inline form -->
+
+  <!-- <form class="form-inline justify-content-center">
+    <div class="form-group">
+     <label class="sr-only" for="email">Email address</label>
+       <div class="input-group">
+           <div class="input-group-text">@</div>
+            <input type="email" class="form-control" id="email" placeholder="Your email">
+
+       </div>    
+
+
+    </div>  
+  <button type="submit" class="btn btn-primary">Sign up</button>      
+
+  </form> -->
+
+	</div>
+
+</div>
+
+</div>
+
+  </div>
+
+
+</div>
 
 {% else %}
 

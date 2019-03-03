@@ -184,7 +184,7 @@
 
 {% if phrase and phrase.findings %}
 
-  <div class="jumbotron" style="text-align: center; margin-top: 10px;">
+<div class="jumbotron" style="text-align: center; margin-top: 10px;">
 
 
 <div class="row">
@@ -326,8 +326,7 @@
 	<tr>
 		<th>Phrase</th>
 		<th>Search Count</th>
-		<th>Created</th>
-		<th>Updated</th>
+		<th>Last searched</th>
 		<th>Jobs</th>
 		<th>Mean Salary</th>
 		<th>Jobs above $100k</th>
@@ -338,8 +337,7 @@
 	<tr>
 		<td><a href="{{ url_for('phrase_view', phrase_slug=this_phrase.slug) }}">{{ this_phrase.phrase_text }}</a></td>
 		<td>{{ this_phrase.search_count }} </td>
-		<td>{{ this_phrase.created_date.strftime('%x') if this_phrase.created_date }} </td>
-		<td>{{ this_phrase.updated_date.strftime('%x') if this_phrase.updated_date }} </td>
+		<td>{{ this_phrase.updated_date.strftime('%x') if this_phrase.updated_date else this_phrase.created_date.strftime('%x') if this_phrase.created_date }} </td>
 		<td>{{ '{:,.0f}'.format(this_phrase.jobs_count) if this_phrase.jobs_count }} </td>
 		<td>{{ '${:,.0f}'.format(this_phrase.mean_salary) if this_phrase.mean_salary }} </td>
 		<td>{{ '{:,.0f}'.format(this_phrase.jobs_above_100k_count) if this_phrase.jobs_above_100k_count }} </td>

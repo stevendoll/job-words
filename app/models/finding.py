@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 import scipy.stats as stats
 
-from app import db, login
+from app import app, db, login
 
 INDEED_SEARCH_URL = 'https://www.indeed.com/jobs?q='
 INDEED_SEARCH_SUFFIX = '&l=Washington%2C+DC'
@@ -79,41 +79,46 @@ class Finding(db.Model):
                 phrase=phrase,
                 indeed_content=indeed_content)
 
+            if indeed_content:
+
+                # perform analysis of indeed jobs histogram
+                job_market = Finding.calculate_jobs_at_salary_levels(this_finding.indeed_content)
+
+                # print(job_market)
+                # if 'mean_salary' in job_market:
+
+                this_finding.mean_salary = job_market['mean_salary']
+                this_finding.sigma_salary = job_market['sigma_salary']
+                this_finding.jobs_count = job_market['jobs_count']
+                this_finding.jobs_above_50k_count = job_market['jobs_above_50k_count']
+                this_finding.jobs_above_55k_count = job_market['jobs_above_55k_count']
+                this_finding.jobs_above_60k_count = job_market['jobs_above_60k_count']
+                this_finding.jobs_above_65k_count = job_market['jobs_above_65k_count']
+                this_finding.jobs_above_70k_count = job_market['jobs_above_70k_count']
+                this_finding.jobs_above_75k_count = job_market['jobs_above_75k_count']
+                this_finding.jobs_above_80k_count = job_market['jobs_above_80k_count']
+                this_finding.jobs_above_85k_count = job_market['jobs_above_85k_count']
+                this_finding.jobs_above_90k_count = job_market['jobs_above_90k_count']
+                this_finding.jobs_above_95k_count = job_market['jobs_above_95k_count']
+                this_finding.jobs_above_100k_count = job_market['jobs_above_100k_count']
+                this_finding.jobs_above_105k_count = job_market['jobs_above_105k_count']
+                this_finding.jobs_above_110k_count = job_market['jobs_above_110k_count']
+                this_finding.jobs_above_115k_count = job_market['jobs_above_115k_count']
+                this_finding.jobs_above_120k_count = job_market['jobs_above_120k_count']
+                this_finding.jobs_above_125k_count = job_market['jobs_above_125k_count']
+                this_finding.jobs_above_130k_count = job_market['jobs_above_130k_count']
+                this_finding.jobs_above_135k_count = job_market['jobs_above_135k_count']
+                this_finding.jobs_above_140k_count = job_market['jobs_above_140k_count']
+                this_finding.jobs_above_145k_count = job_market['jobs_above_145k_count']
+                this_finding.jobs_above_150k_count = job_market['jobs_above_150k_count']
+
             db.session.add(this_finding)
 
-        if this_finding.indeed_content:
+            db.session.commit()
 
-            # perform analysis of indeed jobs histogram
-            job_market = Finding.calculate_jobs_at_salary_levels(this_finding.indeed_content)
+        else:
 
-            # print(job_market)
-
-            this_finding.mean_salary = job_market['mean_salary']
-            this_finding.sigma_salary = job_market['sigma_salary']
-            this_finding.jobs_count = job_market['jobs_count']
-            this_finding.jobs_above_50k_count = job_market['jobs_above_50k_count']
-            this_finding.jobs_above_55k_count = job_market['jobs_above_55k_count']
-            this_finding.jobs_above_60k_count = job_market['jobs_above_60k_count']
-            this_finding.jobs_above_65k_count = job_market['jobs_above_65k_count']
-            this_finding.jobs_above_70k_count = job_market['jobs_above_70k_count']
-            this_finding.jobs_above_75k_count = job_market['jobs_above_75k_count']
-            this_finding.jobs_above_80k_count = job_market['jobs_above_80k_count']
-            this_finding.jobs_above_85k_count = job_market['jobs_above_85k_count']
-            this_finding.jobs_above_90k_count = job_market['jobs_above_90k_count']
-            this_finding.jobs_above_95k_count = job_market['jobs_above_95k_count']
-            this_finding.jobs_above_100k_count = job_market['jobs_above_100k_count']
-            this_finding.jobs_above_105k_count = job_market['jobs_above_105k_count']
-            this_finding.jobs_above_110k_count = job_market['jobs_above_110k_count']
-            this_finding.jobs_above_115k_count = job_market['jobs_above_115k_count']
-            this_finding.jobs_above_120k_count = job_market['jobs_above_120k_count']
-            this_finding.jobs_above_125k_count = job_market['jobs_above_125k_count']
-            this_finding.jobs_above_130k_count = job_market['jobs_above_130k_count']
-            this_finding.jobs_above_135k_count = job_market['jobs_above_135k_count']
-            this_finding.jobs_above_140k_count = job_market['jobs_above_140k_count']
-            this_finding.jobs_above_145k_count = job_market['jobs_above_145k_count']
-            this_finding.jobs_above_150k_count = job_market['jobs_above_150k_count']
-
-        db.session.commit()
+            app.logger.info('The phrase %s was searched on: %s' % (phrase.phrase_text, this_finding.created_date))
 
 
         return this_finding
@@ -148,6 +153,8 @@ class Finding(db.Model):
 
         doc = lxml.html.fromstring(indeed_content)
 
+        result = {}
+
         if len(doc.cssselect('#SALARY_rbo ul li')) > 1:
 
             for i in range(0,len(doc.cssselect('#SALARY_rbo ul li'))):
@@ -155,35 +162,39 @@ class Finding(db.Model):
                 row = doc.cssselect('#SALARY_rbo ul li')[i].text_content().strip().replace(',','')
                 df = df.append({'min_salary': int(get_salary.findall(row)[0]), 'jobs': int(get_job.findall(row)[0])}, ignore_index=True)
 
-        # get salary as center of range, not floor
-        df['salary'] = (df.min_salary + df.min_salary.shift(-1))/2
-        df.loc[df.salary.isnull(), 'salary'] = df.min_salary * 1.15
 
-        market = []
+            # get salary as center of range, not floor
+            df['salary'] = (df.min_salary + df.min_salary.shift(-1))/2
+            df.loc[df.salary.isnull(), 'salary'] = df.min_salary * 1.15
 
-        # generate the job market with a row for each job at each salary
-        for index, row in df.iterrows():
-            market += [row['salary']] * row['jobs']
+            market = []
 
-        market = pd.Series(market)
+            # generate the job market with a row for each job at each salary
+            for index, row in df.iterrows():
+                market += [row['salary']] * row['jobs']
 
-        result = {}
-        result['mean_salary'] = market.mean()
-        result['sigma_salary'] = market.std()
-        result['jobs_count'] = market.count()
-        # result['chi_squared'], result['normality_p_value'] = stats.normaltest(market)
+            market = pd.Series(market)
 
-        for i in range(50, 155, 5):
-            result['jobs_above_' + str(i) + 'k_count'] = (1-stats.norm.cdf(i*1000, loc=market.mean(), scale=market.std()))*market.count()
+            result = {}
+            result['mean_salary'] = market.mean()
+            result['sigma_salary'] = market.std()
+            result['jobs_count'] = market.count()
+            # result['chi_squared'], result['normality_p_value'] = stats.normaltest(market)
 
-        # print(result)
+            for i in range(50, 155, 5):
+                result['jobs_above_' + str(i) + 'k_count'] = (1-stats.norm.cdf(i*1000, loc=market.mean(), scale=market.std()))*market.count()
 
-        # alpha = 1e-3
-        # print("p = {:g}".format(result['normality_p_value']))
-        # if result['normality_p_value'] < alpha:  # null hypothesis: x comes from a normal distribution
-        #     print("The null hypothesis can be rejected")
-        # else:
-        #     print("The null hypothesis cannot be rejected")
+            # print(result)
+
+            # alpha = 1e-3
+            # print("p = {:g}".format(result['normality_p_value']))
+            # if result['normality_p_value'] < alpha:  # null hypothesis: x comes from a normal distribution
+            #     print("The null hypothesis can be rejected")
+            # else:
+            #     print("The null hypothesis cannot be rejected")
+
+        else:
+            app.logger.warning('No salary lines found in indeed text')
 
         return result
  
