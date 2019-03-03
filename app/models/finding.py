@@ -14,7 +14,7 @@ import scipy.stats as stats
 
 from app import db, login
 
-INDEED_SEARCH_URL = 'http://www.indeed.com/jobs?q='
+INDEED_SEARCH_URL = 'https://www.indeed.com/jobs?q='
 INDEED_SEARCH_SUFFIX = '&l=Washington%2C+DC'
 INDEED_HEADERS = {'User-agent':'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1'}
 
