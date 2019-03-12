@@ -5,9 +5,12 @@ from hashlib import md5
 from sqlalchemy.sql import func
 
 # authorization
-roles_users = db.Table('roles_users',
-        db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
-        db.Column('role_id', db.String(255), db.ForeignKey('role.role_id')))
+roles_users = db.Table(
+    "roles_users",
+    db.Column("user_id", db.Integer, db.ForeignKey("user.id")),
+    db.Column("role_id", db.String(255), db.ForeignKey("role.role_id")),
+)
+
 
 class Role(db.Model):
     role_id = db.Column(db.String(255), primary_key=True)
@@ -15,7 +18,8 @@ class Role(db.Model):
     is_active = db.Column(db.Boolean(), default=True)
 
     def __repr__(self):
-        return '<Role {}>'.format(self.role_id)
+        return "<Role {}>".format(self.role_id)
+
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -24,13 +28,14 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
     created_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_date = db.Column(db.DateTime(timezone=True), onupdate=func.now())
-    phrases = db.relationship('UserPhrase')
-    documents = db.relationship('Document')
-    roles = db.relationship('Role', secondary=roles_users,
-                            backref=db.backref('users', lazy='dynamic'))
+    phrases = db.relationship("UserPhrase")
+    documents = db.relationship("Document")
+    roles = db.relationship(
+        "Role", secondary=roles_users, backref=db.backref("users", lazy="dynamic")
+    )
 
     def __repr__(self):
-        return '<User {}>'.format(self.username)
+        return "<User {}>".format(self.username)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -39,8 +44,8 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
     def avatar(self, size):
-        digest = md5(self.email.lower().encode('utf-8')).hexdigest()
-        return 'https://www.gravatar.com/avatar/{}?d=blank&s={}'.format(digest, size)
+        digest = md5(self.email.lower().encode("utf-8")).hexdigest()
+        return "https://www.gravatar.com/avatar/{}?d=blank&s={}".format(digest, size)
 
     def get_roles(self):
         # return a list of role names
@@ -54,7 +59,7 @@ class User(UserMixin, db.Model):
         if not self.has_role(role):
             this_role = Role.query.get(role)
             if not this_role:
-                raise Exception('Role not found: {}'.format(role))
+                raise Exception("Role not found: {}".format(role))
             self.roles.append(this_role)
             db.session.commit()
 
@@ -62,11 +67,12 @@ class User(UserMixin, db.Model):
         if self.has_role(role):
             this_role = Role.query.get(role)
             if not this_role:
-                raise Exception('Role not found: {}'.format(role))
+                raise Exception("Role not found: {}".format(role))
             self.roles.remove(this_role)
             db.session.commit()
         else:
-            raise Exception('User does not have role: {}'.format(role))
+            raise Exception("User does not have role: {}".format(role))
+
     @staticmethod
     def get_all():
         return User.query.all()
@@ -79,5 +85,3 @@ class User(UserMixin, db.Model):
 @login.user_loader
 def load_user(id):
     return User.query.get(int(id))
-
-

@@ -17,7 +17,7 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 Bootstrap(app)
 login = LoginManager(app)
-login.login_view = 'login'
+login.login_view = "login"
 
 
 # if app.config['LOG_TO_STDOUT']:
@@ -36,14 +36,11 @@ login.login_view = 'login'
 #     app.logger.addHandler(file_handler)
 
 app.logger.setLevel(logging.INFO)
-app.logger.info('App startup')
+app.logger.info("App startup")
 # app.logger.info(app.config['SQLALCHEMY_DATABASE_URI'])
-
 
 
 from app import routes, models
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run()
-
-

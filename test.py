@@ -92,16 +92,14 @@ class UserCase(unittest.TestCase):
 
     def test_login_logout(self):
  
-        self.login('john','johnpassword')
-        response = self.app.client.get('/',follow_redirects=True)
-
+        response = self.login('john','johnpassword')
         self.assertIn('Logout', str(response.data))
-        self.assertIn('Hi, john', str(response.data))
+        self.assertIn('Welcome back john', str(response.data))
 
         response = self.logout()
         self.assertIn('Goodbye', str(response.data)) 
         self.assertIn('Login', str(response.data))
-        self.assertNotIn('Hi, john', str(response.data))
+        self.assertNotIn('Welcome back john', str(response.data))
 
         response = self.login('john','notpassword')
         self.assertIn('Invalid username or password', str(response.data))
@@ -114,17 +112,17 @@ class UserCase(unittest.TestCase):
     def test_register(self):
  
         # add to db if doesn't exist, convert to lowercase
-        result = self.register('ANNEusername', 'anne@example.com', 'annpassword', 'annpassword')
+        result = self.register('anneusername', 'anne@example.com', 'annpassword', 'annpassword')
         self.assertIn('Congratulations, you are now a registered user!', str(result.data))        
 
-        result = self.login('ANNEusername','annpassword')
+        result = self.login('anneusername','annpassword')
         self.assertIn('Logout', str(result.data))        
-        self.assertIn('Hi new user', str(result.data))
+        self.assertIn('Welcome back anneusername', str(result.data))
         self.logout()
 
         # redirect to login if already registered
         result = self.register('john', 'john@example.com', 'johnpassword', 'johnpassword')
-        self.assertIn('You are already registered. Please login instead.', str(result.data))        
+        self.assertIn('Have you already registered? Otherwise please use a different username.', str(result.data))        
 
     def test_user_list_protected(self):
         response = self.app.client.get('/users', content_type='teml/text')
@@ -255,7 +253,7 @@ class RoleCase(unittest.TestCase):
     def test_registered_user_has_no_role(self):
 
         # looks up user if doesn't exist
-        result = UserCase.register(self, 'anne','annepassword','annepassword')
+        result = UserCase.register(self, 'anne','anne@example.com','annepassword','annepassword')
         self.assertIn('Congratulations, you are now a registered user!', str(result.data))        
 
         user = User.get_by_username('anne')
@@ -286,242 +284,242 @@ class RoleCase(unittest.TestCase):
     #     self.assertIn('You should be redirected automatically to target URL: <a href="/login?next=%2Fstreams%2Fdx-queue%2Frefresh">/login?next=%2Fstreams%2Fdx-queue%2Frefresh</a>', str(result.data))
 
 
-class AuthorizationCase(unittest.TestCase):
-    def setUp(self):
+# class AuthorizationCase(unittest.TestCase):
+#     def setUp(self):
 
-        app.config['TESTING'] = True
-        app.config['WTF_CSRF_ENABLED'] = False
+#         app.config['TESTING'] = True
+#         app.config['WTF_CSRF_ENABLED'] = False
 
-        self.app = app
-        self.app.client = app.test_client()
+#         self.app = app
+#         self.app.client = app.test_client()
 
 
-        with self.app.app_context():
-            db.session.remove()
-            db.drop_all()
-            db.create_all()
+#         with self.app.app_context():
+#             db.session.remove()
+#             db.drop_all()
+#             db.create_all()
 
-        r1 = Role(role_id='Admin')
-        r2 = Role(role_id='ApiDxReviewer')
-        r3 = Role(role_id='StreamDxReviewer')
-        r4 = Role(role_id='ApiCoach')
-        r5 = Role(role_id='StreamCoach')
+#         r1 = Role(role_id='Admin')
+#         r2 = Role(role_id='ApiDxReviewer')
+#         r3 = Role(role_id='StreamDxReviewer')
+#         r4 = Role(role_id='ApiCoach')
+#         r5 = Role(role_id='StreamCoach')
 
-        db.session.add_all([r1, r2, r3, r4, r5])
+#         db.session.add_all([r1, r2, r3, r4, r5])
 
-        u1 = User(user_eid='abc001', first_name='AdminUser')
-        u1.set_password('abc001password')
-        u1.roles.append(r1)
+#         u1 = User(user_eid='abc001', first_name='AdminUser')
+#         u1.set_password('abc001password')
+#         u1.roles.append(r1)
 
-        u2 = User(user_eid='abc002', first_name='ApiDxReviewerUser')
-        u2.set_password('abc002password')
-        u2.roles.append(r2)
+#         u2 = User(user_eid='abc002', first_name='ApiDxReviewerUser')
+#         u2.set_password('abc002password')
+#         u2.roles.append(r2)
 
-        u3 = User(user_eid='abc003', first_name='StreamDxReviewerUser')
-        u3.set_password('abc003password')
-        u3.roles.append(r3)
+#         u3 = User(user_eid='abc003', first_name='StreamDxReviewerUser')
+#         u3.set_password('abc003password')
+#         u3.roles.append(r3)
 
-        u4 = User(user_eid='abc004', first_name='ApiCoachUser')
-        u4.set_password('abc004password')
-        u4.roles.append(r4)
+#         u4 = User(user_eid='abc004', first_name='ApiCoachUser')
+#         u4.set_password('abc004password')
+#         u4.roles.append(r4)
 
-        u5 = User(user_eid='abc005', first_name='StreamCoachUser')
-        u5.set_password('abc005password')
-        u5.roles.append(r5)
+#         u5 = User(user_eid='abc005', first_name='StreamCoachUser')
+#         u5.set_password('abc005password')
+#         u5.roles.append(r5)
 
-        u6 = User(user_eid='abc006', first_name='Nobody')
-        u6.set_password('abc006password')
-        u1.roles.append(r1)
+#         u6 = User(user_eid='abc006', first_name='Nobody')
+#         u6.set_password('abc006password')
+#         u1.roles.append(r1)
 
-        db.session.add_all([u1, u2, u3, u4, u5, u6])
+#         db.session.add_all([u1, u2, u3, u4, u5, u6])
 
-        db.session.commit()
+#         db.session.commit()
 
-    def tearDown(self):
-        db.session.remove()
-        db.drop_all()
+#     def tearDown(self):
+#         db.session.remove()
+#         db.drop_all()
 
-    def test_admin_not_authorized(self):
-        result = UserTestCase.login(self, 'abc006','abc006password')
+#     def test_admin_not_authorized(self):
+#         result = UserTestCase.login(self, 'abc006','abc006password')
 
-        # is logged in
-        self.assertIn('Nobody', str(result.data))
-        self.assertIn('Logout', str(result.data))
+#         # is logged in
+#         self.assertIn('Nobody', str(result.data))
+#         self.assertIn('Logout', str(result.data))
 
-        # doesn't have rights to update dx queue
-        result = self.app.client.get('/apis/dx-queue/refresh', follow_redirects=True)
-        self.assertNotIn('Admin', str(result.data)) # not in menu
-        self.assertNotIn('/apis/dx-queue/refresh', str(result.data)) # not in menu
-        self.assertIn('Not authorized. You do not have a role that allows access to this feature.', str(result.data))
-        self.assertNotIn('Rebuilding all API records', str(result.data))
+#         # doesn't have rights to update dx queue
+#         result = self.app.client.get('/apis/dx-queue/refresh', follow_redirects=True)
+#         self.assertNotIn('Admin', str(result.data)) # not in menu
+#         self.assertNotIn('/apis/dx-queue/refresh', str(result.data)) # not in menu
+#         self.assertIn('Not authorized. You do not have a role that allows access to this feature.', str(result.data))
+#         self.assertNotIn('Rebuilding all API records', str(result.data))
 
-        UserTestCase.logout(self)
+#         UserTestCase.logout(self)
         
-        # login as api dx reviewer
-        result = UserTestCase.login(self, 'abc002','abc002password')
+#         # login as api dx reviewer
+#         result = UserTestCase.login(self, 'abc002','abc002password')
 
-        # is logged in
-        self.assertIn('ApiDxReviewerUser', str(result.data))
-        self.assertIn('Logout', str(result.data))
+#         # is logged in
+#         self.assertIn('ApiDxReviewerUser', str(result.data))
+#         self.assertIn('Logout', str(result.data))
 
-        # doesn't have rights to refresh api dx queue
-        result = self.app.client.get('/apis/dx-queue/refresh', follow_redirects=True)
-        self.assertNotIn('/apis/dx-queue/refresh', str(result.data)) # not in menu
-        self.assertIn('Not authorized. You do not have a role that allows access to this feature.', str(result.data))
-        self.assertNotIn('Rebuilding all API records', str(result.data))
+#         # doesn't have rights to refresh api dx queue
+#         result = self.app.client.get('/apis/dx-queue/refresh', follow_redirects=True)
+#         self.assertNotIn('/apis/dx-queue/refresh', str(result.data)) # not in menu
+#         self.assertIn('Not authorized. You do not have a role that allows access to this feature.', str(result.data))
+#         self.assertNotIn('Rebuilding all API records', str(result.data))
 
-        # doesn't have rights to refresh stream dx queue
-        result = self.app.client.get('/streams/dx-queue/refresh', follow_redirects=True)
-        self.assertNotIn('/streams/dx-queue/refresh', str(result.data)) # not in menu
-        self.assertIn('Not authorized. You do not have a role that allows access to this feature.', str(result.data))
-        self.assertNotIn('Rebuilding all Stream records', str(result.data))
+#         # doesn't have rights to refresh stream dx queue
+#         result = self.app.client.get('/streams/dx-queue/refresh', follow_redirects=True)
+#         self.assertNotIn('/streams/dx-queue/refresh', str(result.data)) # not in menu
+#         self.assertIn('Not authorized. You do not have a role that allows access to this feature.', str(result.data))
+#         self.assertNotIn('Rebuilding all Stream records', str(result.data))
 
-    def test_admin_authorized(self):
-        UserTestCase.login(self, 'abc001','abc001password')
+#     def test_admin_authorized(self):
+#         UserTestCase.login(self, 'abc001','abc001password')
 
-        result = self.app.client.get('/apis/dx-queue/refresh', follow_redirects=True)
-        self.assertIn('Admin', str(result.data)) # in menu
-        self.assertIn('/apis/dx-queue/refresh', str(result.data)) # in menu
-        self.assertNotIn('Not authorized. You do not have a role that allows access to this feature.', str(result.data))
-        self.assertIn('Rebuilding all API records', str(result.data))
+#         result = self.app.client.get('/apis/dx-queue/refresh', follow_redirects=True)
+#         self.assertIn('Admin', str(result.data)) # in menu
+#         self.assertIn('/apis/dx-queue/refresh', str(result.data)) # in menu
+#         self.assertNotIn('Not authorized. You do not have a role that allows access to this feature.', str(result.data))
+#         self.assertIn('Rebuilding all API records', str(result.data))
 
-    def test_api_update_not_authorized(self):
-        result = UserTestCase.login(self, 'abc006','abc006password')
+#     def test_api_update_not_authorized(self):
+#         result = UserTestCase.login(self, 'abc006','abc006password')
 
-        # is logged in
-        self.assertIn('Nobody', str(result.data))
-        self.assertIn('Logout', str(result.data))
+#         # is logged in
+#         self.assertIn('Nobody', str(result.data))
+#         self.assertIn('Logout', str(result.data))
 
-        # doesn't have rights to update dx queue
-        result = self.app.client.get('/apis/dx-queue/update', follow_redirects=True)
-        self.assertNotIn('/apis/dx-queue/update', str(result.data)) # not in menu
-        self.assertIn('Not authorized. You do not have a role that allows access to this feature.', str(result.data))
-        self.assertNotIn('API incremental update started', str(result.data))
+#         # doesn't have rights to update dx queue
+#         result = self.app.client.get('/apis/dx-queue/update', follow_redirects=True)
+#         self.assertNotIn('/apis/dx-queue/update', str(result.data)) # not in menu
+#         self.assertIn('Not authorized. You do not have a role that allows access to this feature.', str(result.data))
+#         self.assertNotIn('API incremental update started', str(result.data))
 
-        UserTestCase.logout(self)
+#         UserTestCase.logout(self)
         
-        # login as stream coach
-        result = UserTestCase.login(self, 'abc005','abc005password')
+#         # login as stream coach
+#         result = UserTestCase.login(self, 'abc005','abc005password')
 
-        # is logged in
-        self.assertIn('StreamCoachUser', str(result.data))
-        self.assertIn('Logout', str(result.data))
+#         # is logged in
+#         self.assertIn('StreamCoachUser', str(result.data))
+#         self.assertIn('Logout', str(result.data))
 
-        # doesn't have rights to update dx queue
-        result = self.app.client.get('/apis/dx-queue/update', follow_redirects=True)
-        self.assertNotIn('/apis/dx-queue/update', str(result.data)) # not in menu
-        self.assertIn('Not authorized. You do not have a role that allows access to this feature.', str(result.data))
-        self.assertNotIn('API incremental update started', str(result.data))
+#         # doesn't have rights to update dx queue
+#         result = self.app.client.get('/apis/dx-queue/update', follow_redirects=True)
+#         self.assertNotIn('/apis/dx-queue/update', str(result.data)) # not in menu
+#         self.assertIn('Not authorized. You do not have a role that allows access to this feature.', str(result.data))
+#         self.assertNotIn('API incremental update started', str(result.data))
 
-    def test_stream_update_not_authorized(self):
-        result = UserTestCase.login(self, 'abc006','abc006password')
+#     def test_stream_update_not_authorized(self):
+#         result = UserTestCase.login(self, 'abc006','abc006password')
 
-        # is logged in
-        self.assertIn('Nobody', str(result.data))
-        self.assertIn('Logout', str(result.data))
+#         # is logged in
+#         self.assertIn('Nobody', str(result.data))
+#         self.assertIn('Logout', str(result.data))
 
-        # doesn't have rights to update dx queue
-        result = self.app.client.get('/streams/dx-queue/update', follow_redirects=True)
-        self.assertNotIn('/streams/dx-queue/update', str(result.data)) # not in menu
-        self.assertIn('Not authorized. You do not have a role that allows access to this feature.', str(result.data))
-        self.assertNotIn('Stream incremental update started', str(result.data))
+#         # doesn't have rights to update dx queue
+#         result = self.app.client.get('/streams/dx-queue/update', follow_redirects=True)
+#         self.assertNotIn('/streams/dx-queue/update', str(result.data)) # not in menu
+#         self.assertIn('Not authorized. You do not have a role that allows access to this feature.', str(result.data))
+#         self.assertNotIn('Stream incremental update started', str(result.data))
 
-        UserTestCase.logout(self)
+#         UserTestCase.logout(self)
         
-        # login as api coach
-        result = UserTestCase.login(self, 'abc004','abc004password')
+#         # login as api coach
+#         result = UserTestCase.login(self, 'abc004','abc004password')
 
-        # is logged in
-        self.assertIn('ApiCoachUser', str(result.data))
-        self.assertIn('Logout', str(result.data))
+#         # is logged in
+#         self.assertIn('ApiCoachUser', str(result.data))
+#         self.assertIn('Logout', str(result.data))
 
-        # doesn't have rights to update dx queue
-        result = self.app.client.get('/streams/dx-queue/update', follow_redirects=True)
-        self.assertNotIn('/streams/dx-queue/update', str(result.data)) # not in menu
-        self.assertIn('Not authorized. You do not have a role that allows access to this feature.', str(result.data))
-        self.assertNotIn('API incremental update started', str(result.data))
+#         # doesn't have rights to update dx queue
+#         result = self.app.client.get('/streams/dx-queue/update', follow_redirects=True)
+#         self.assertNotIn('/streams/dx-queue/update', str(result.data)) # not in menu
+#         self.assertIn('Not authorized. You do not have a role that allows access to this feature.', str(result.data))
+#         self.assertNotIn('API incremental update started', str(result.data))
 
-    def test_api_update_authorized(self):
+#     def test_api_update_authorized(self):
 
-        # abc001 AdminUser
-        # abc002 ApiDxReviewerUser
-        # abc003 StreamDxReviewerUser
-        # abc004 ApiCoachUser
-        # abc005 StreamCoachUser
-        # abc006 Nobody
+#         # abc001 AdminUser
+#         # abc002 ApiDxReviewerUser
+#         # abc003 StreamDxReviewerUser
+#         # abc004 ApiCoachUser
+#         # abc005 StreamCoachUser
+#         # abc006 Nobody
 
-        UserTestCase.login(self, 'abc001','abc001password')
+#         UserTestCase.login(self, 'abc001','abc001password')
 
-        result = self.app.client.get('/apis/dx-queue/update', follow_redirects=True)
-        self.assertIn('/apis/dx-queue/update', str(result.data)) # in menu
-        self.assertIn('AdminUser', str(result.data))
-        self.assertIn('API incremental update started', str(result.data))
+#         result = self.app.client.get('/apis/dx-queue/update', follow_redirects=True)
+#         self.assertIn('/apis/dx-queue/update', str(result.data)) # in menu
+#         self.assertIn('AdminUser', str(result.data))
+#         self.assertIn('API incremental update started', str(result.data))
 
-        UserTestCase.logout(self)
+#         UserTestCase.logout(self)
         
-        # confirm logout
-        result = self.app.client.get('/apis/dx-queue/update', follow_redirects=True)
-        self.assertIn('Please log in to access this page.', str(result.data))
+#         # confirm logout
+#         result = self.app.client.get('/apis/dx-queue/update', follow_redirects=True)
+#         self.assertIn('Please log in to access this page.', str(result.data))
 
 
-        UserTestCase.login(self, 'abc002','abc002password')
+#         UserTestCase.login(self, 'abc002','abc002password')
 
-        result = self.app.client.get('/apis/dx-queue/update', follow_redirects=True)
-        self.assertIn('/apis/dx-queue/update', str(result.data)) # in menu
-        self.assertIn('ApiDxReviewerUser', str(result.data))
-        self.assertIn('API incremental update started', str(result.data))
+#         result = self.app.client.get('/apis/dx-queue/update', follow_redirects=True)
+#         self.assertIn('/apis/dx-queue/update', str(result.data)) # in menu
+#         self.assertIn('ApiDxReviewerUser', str(result.data))
+#         self.assertIn('API incremental update started', str(result.data))
 
-        UserTestCase.logout(self)
+#         UserTestCase.logout(self)
 
-        UserTestCase.login(self, 'abc004','abc004password')
+#         UserTestCase.login(self, 'abc004','abc004password')
 
-        result = self.app.client.get('/apis/dx-queue/update', follow_redirects=True)
-        self.assertIn('/apis/dx-queue/update', str(result.data)) # in menu
-        self.assertIn('ApiCoachUser', str(result.data))
-        self.assertIn('API incremental update started', str(result.data))
+#         result = self.app.client.get('/apis/dx-queue/update', follow_redirects=True)
+#         self.assertIn('/apis/dx-queue/update', str(result.data)) # in menu
+#         self.assertIn('ApiCoachUser', str(result.data))
+#         self.assertIn('API incremental update started', str(result.data))
 
-        UserTestCase.logout(self)
+#         UserTestCase.logout(self)
 
-    def test_stream_update_authorized(self):
+#     def test_stream_update_authorized(self):
 
-        # abc001 AdminUser
-        # abc002 ApiDxReviewerUser
-        # abc003 StreamDxReviewerUser
-        # abc004 ApiCoachUser
-        # abc005 StreamCoachUser
-        # abc006 Nobody
+#         # abc001 AdminUser
+#         # abc002 ApiDxReviewerUser
+#         # abc003 StreamDxReviewerUser
+#         # abc004 ApiCoachUser
+#         # abc005 StreamCoachUser
+#         # abc006 Nobody
 
-        UserTestCase.login(self, 'abc001','abc001password')
+#         UserTestCase.login(self, 'abc001','abc001password')
 
-        result = self.app.client.get('/streams/dx-queue/update', follow_redirects=True)
-        self.assertIn('/streams/dx-queue/update', str(result.data)) # in menu
-        self.assertIn('AdminUser', str(result.data))
-        self.assertIn('Stream incremental update started', str(result.data))
+#         result = self.app.client.get('/streams/dx-queue/update', follow_redirects=True)
+#         self.assertIn('/streams/dx-queue/update', str(result.data)) # in menu
+#         self.assertIn('AdminUser', str(result.data))
+#         self.assertIn('Stream incremental update started', str(result.data))
 
-        UserTestCase.logout(self)
+#         UserTestCase.logout(self)
         
-        # confirm logout
-        result = self.app.client.get('/streams/dx-queue/update', follow_redirects=True)
-        self.assertIn('Please log in to access this page.', str(result.data))
+#         # confirm logout
+#         result = self.app.client.get('/streams/dx-queue/update', follow_redirects=True)
+#         self.assertIn('Please log in to access this page.', str(result.data))
 
 
-        UserTestCase.login(self, 'abc003','abc003password')
+#         UserTestCase.login(self, 'abc003','abc003password')
 
-        result = self.app.client.get('/streams/dx-queue/update', follow_redirects=True)
-        self.assertIn('/streams/dx-queue/update', str(result.data)) # in menu
-        self.assertIn('StreamDxReviewerUser', str(result.data))
-        self.assertIn('Stream incremental update started', str(result.data))
+#         result = self.app.client.get('/streams/dx-queue/update', follow_redirects=True)
+#         self.assertIn('/streams/dx-queue/update', str(result.data)) # in menu
+#         self.assertIn('StreamDxReviewerUser', str(result.data))
+#         self.assertIn('Stream incremental update started', str(result.data))
 
-        UserTestCase.logout(self)
+#         UserTestCase.logout(self)
 
-        UserTestCase.login(self, 'abc005','abc005password')
+#         UserTestCase.login(self, 'abc005','abc005password')
 
-        result = self.app.client.get('/streams/dx-queue/update', follow_redirects=True)
-        self.assertIn('/streams/dx-queue/update', str(result.data)) # in menu
-        self.assertIn('StreamCoachUser', str(result.data))
-        self.assertIn('Stream incremental update started', str(result.data))
+#         result = self.app.client.get('/streams/dx-queue/update', follow_redirects=True)
+#         self.assertIn('/streams/dx-queue/update', str(result.data)) # in menu
+#         self.assertIn('StreamCoachUser', str(result.data))
+#         self.assertIn('Stream incremental update started', str(result.data))
 
-        UserTestCase.logout(self)
+#         UserTestCase.logout(self)
 
 
 class InitializeCase(unittest.TestCase):
@@ -888,8 +886,8 @@ class FindingCase(unittest.TestCase):
         response = self.app.client.get('/phrases?term=' + term, content_type='html/text')
         response = self.app.client.get('/phrases/' + term, content_type='html/text')
         self.assertEqual(response.status_code, 200)
-        self.assertIn('Mean Salary', str(response.data))
-        self.assertIn('Jobs above $100k', str(response.data))
+        self.assertIn('New search phrase!', str(response.data))
+        self.assertIn('with an average salary of $', str(response.data))
 
  
 class DocumentCase(unittest.TestCase):
