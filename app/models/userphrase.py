@@ -1,4 +1,4 @@
-from app import db, login
+from app import app, db
 from sqlalchemy.sql import func
 import datetime as dt
 

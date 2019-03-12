@@ -5,7 +5,7 @@ from sqlalchemy.sql import select, func
 from sqlalchemy.orm import column_property
 import re
 import uuid
-from app import app, db, login
+from app import app, db
 from app.models import UserPhrase, Phrase
 
 PHRASE_MINIMUM_JOBS = 100

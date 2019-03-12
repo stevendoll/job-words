@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 import scipy.stats as stats
 
-from app import app, db, login
+from app import app, db
 
 INDEED_SEARCH_URL = "https://www.indeed.com/jobs?q="
 INDEED_SEARCH_SUFFIX = "&l=Washington%2C+DC"

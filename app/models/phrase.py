@@ -1,4 +1,4 @@
-from app import app, db, login
+from app import app, db
 from sqlalchemy import case, desc
 from sqlalchemy.sql import select, func
 from sqlalchemy.orm import column_property
