@@ -94,33 +94,32 @@ class Finding(db.Model):
                     this_finding.indeed_content
                 )
 
-                # print(job_market)
-                # if 'mean_salary' in job_market:
+                if job_market:
 
-                this_finding.mean_salary = job_market["mean_salary"]
-                this_finding.sigma_salary = job_market["sigma_salary"]
-                this_finding.jobs_count = job_market["jobs_count"]
-                this_finding.jobs_above_50k_count = job_market["jobs_above_50k_count"]
-                this_finding.jobs_above_55k_count = job_market["jobs_above_55k_count"]
-                this_finding.jobs_above_60k_count = job_market["jobs_above_60k_count"]
-                this_finding.jobs_above_65k_count = job_market["jobs_above_65k_count"]
-                this_finding.jobs_above_70k_count = job_market["jobs_above_70k_count"]
-                this_finding.jobs_above_75k_count = job_market["jobs_above_75k_count"]
-                this_finding.jobs_above_80k_count = job_market["jobs_above_80k_count"]
-                this_finding.jobs_above_85k_count = job_market["jobs_above_85k_count"]
-                this_finding.jobs_above_90k_count = job_market["jobs_above_90k_count"]
-                this_finding.jobs_above_95k_count = job_market["jobs_above_95k_count"]
-                this_finding.jobs_above_100k_count = job_market["jobs_above_100k_count"]
-                this_finding.jobs_above_105k_count = job_market["jobs_above_105k_count"]
-                this_finding.jobs_above_110k_count = job_market["jobs_above_110k_count"]
-                this_finding.jobs_above_115k_count = job_market["jobs_above_115k_count"]
-                this_finding.jobs_above_120k_count = job_market["jobs_above_120k_count"]
-                this_finding.jobs_above_125k_count = job_market["jobs_above_125k_count"]
-                this_finding.jobs_above_130k_count = job_market["jobs_above_130k_count"]
-                this_finding.jobs_above_135k_count = job_market["jobs_above_135k_count"]
-                this_finding.jobs_above_140k_count = job_market["jobs_above_140k_count"]
-                this_finding.jobs_above_145k_count = job_market["jobs_above_145k_count"]
-                this_finding.jobs_above_150k_count = job_market["jobs_above_150k_count"]
+                    this_finding.mean_salary = job_market["mean_salary"]
+                    this_finding.sigma_salary = job_market["sigma_salary"]
+                    this_finding.jobs_count = job_market["jobs_count"]
+                    this_finding.jobs_above_50k_count = job_market["jobs_above_50k_count"]
+                    this_finding.jobs_above_55k_count = job_market["jobs_above_55k_count"]
+                    this_finding.jobs_above_60k_count = job_market["jobs_above_60k_count"]
+                    this_finding.jobs_above_65k_count = job_market["jobs_above_65k_count"]
+                    this_finding.jobs_above_70k_count = job_market["jobs_above_70k_count"]
+                    this_finding.jobs_above_75k_count = job_market["jobs_above_75k_count"]
+                    this_finding.jobs_above_80k_count = job_market["jobs_above_80k_count"]
+                    this_finding.jobs_above_85k_count = job_market["jobs_above_85k_count"]
+                    this_finding.jobs_above_90k_count = job_market["jobs_above_90k_count"]
+                    this_finding.jobs_above_95k_count = job_market["jobs_above_95k_count"]
+                    this_finding.jobs_above_100k_count = job_market["jobs_above_100k_count"]
+                    this_finding.jobs_above_105k_count = job_market["jobs_above_105k_count"]
+                    this_finding.jobs_above_110k_count = job_market["jobs_above_110k_count"]
+                    this_finding.jobs_above_115k_count = job_market["jobs_above_115k_count"]
+                    this_finding.jobs_above_120k_count = job_market["jobs_above_120k_count"]
+                    this_finding.jobs_above_125k_count = job_market["jobs_above_125k_count"]
+                    this_finding.jobs_above_130k_count = job_market["jobs_above_130k_count"]
+                    this_finding.jobs_above_135k_count = job_market["jobs_above_135k_count"]
+                    this_finding.jobs_above_140k_count = job_market["jobs_above_140k_count"]
+                    this_finding.jobs_above_145k_count = job_market["jobs_above_145k_count"]
+                    this_finding.jobs_above_150k_count = job_market["jobs_above_150k_count"]
 
             db.session.add(this_finding)
 
@@ -164,7 +163,7 @@ class Finding(db.Model):
 
         doc = lxml.html.fromstring(indeed_content)
 
-        result = {}
+        result = None
 
         if len(doc.cssselect("#SALARY_rbo ul li")) > 1:
 

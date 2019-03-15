@@ -77,7 +77,7 @@ class Phrase(db.Model):
 
     def serialize(self):
         result = {}
-        result["documentTitle"] = None
+        result["phrase_groupTitle"] = None
         result["username"] = None
         result["phraseText"] = self.phrase_text
         result["searchCount"] = self.search_count
@@ -139,7 +139,7 @@ class Phrase(db.Model):
         )
 
     @staticmethod
-    def add(phrase_text, user=None, document=None):
+    def add(phrase_text, user=None, phrase_group=None):
 
         regex_remove_special = (
             r"[^\w\.\s\-]"
@@ -190,8 +190,8 @@ class Phrase(db.Model):
                 phrase = Phrase(phrase_text=phrase_text, slug=slug)
                 db.session.add(phrase)
 
-            if user or document:
-                user_phrase = UserPhrase(phrase=phrase, user=user, document=document)
+            if user or phrase_group:
+                user_phrase = UserPhrase(phrase=phrase, user=user, phrase_group=phrase_group)
                 db.session.add(user_phrase)
 
             db.session.commit()
@@ -199,7 +199,7 @@ class Phrase(db.Model):
         return phrase
 
     @staticmethod
-    def add_multiple(phrase_texts, user=None, document=None):
+    def add_multiple(phrase_texts, user=None, phrase_group=None):
 
         for phrase_text in phrase_texts:
 
@@ -207,15 +207,15 @@ class Phrase(db.Model):
             app.logger.info(flash_message)
 
             # add phrase
-            phrase = Phrase.add(phrase_text, user, document)
+            phrase = Phrase.add(phrase_text, user, phrase_group)
 
             # analyze
             Finding.analyze(phrase)
 
     @staticmethod
-    def lookup(phrase_text, user=None, document=None):
+    def lookup(phrase_text, user=None, phrase_group=None):
 
-        phrase = Phrase.add(phrase_text, user=user, document=document)
+        phrase = Phrase.add(phrase_text, user=user, phrase_group=phrase_group)
 
         # scrape indeed and analyze
         Finding.analyze(phrase)

@@ -29,7 +29,7 @@ class User(UserMixin, db.Model):
     created_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_date = db.Column(db.DateTime(timezone=True), onupdate=func.now())
     phrases = db.relationship("UserPhrase")
-    documents = db.relationship("Document")
+    phrase_groups = db.relationship("PhraseGroup")
     roles = db.relationship(
         "Role", secondary=roles_users, backref=db.backref("users", lazy="dynamic")
     )

@@ -8,15 +8,15 @@ class UserPhrase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     phrase_id = db.Column(db.Integer, db.ForeignKey("phrase.id"), nullable=False)
-    document_id = db.Column(db.Integer, db.ForeignKey("document.id"))
+    phrase_group_id = db.Column(db.Integer, db.ForeignKey("phrase_group.id"))
     created_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     phrase = db.relationship("Phrase")
     user = db.relationship("User")
-    document = db.relationship("Document")
+    phrase_group = db.relationship("PhraseGroup")
 
     def serialize(self):
         result = {}
-        result["documentTitle"] = self.document.title if self.document else None
+        result["phraseGroupTitle"] = self.phrase_group.title if self.phrase_group else None
         result["username"] = self.user.username if self.user else None
         result["phraseText"] = self.phrase.phrase_text
         result["searchCount"] = self.phrase.search_count
