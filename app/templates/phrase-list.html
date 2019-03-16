@@ -3,7 +3,7 @@
 {% block scripts %}
 {{super()}}
 
-      <script type="text/javascript">
+<script type="text/javascript">
     var numberFormat = d3.format(".0f");
 
     var usChart = dc.geoChoroplethChart("#us-chart");
@@ -12,15 +12,15 @@
     var documentChart = dc.rowChart('#document-chart');
 
     d3.json("api/phrases").then(function (jsonData) {
-        
+
         var records = jsonData["phrases"]
 
-          records.forEach(function(d) {
+        records.forEach(function(d) {
             d.meanSalary = d.meanSalary / 1000;
             if (d.documentTitle) {} else { d["documentTitle"] = '-No document-'};
             if (d.username) {} else { d["username"] = '-Anonymous-'};
 
-          });
+        });
 
 
         var ndx = crossfilter(records);
@@ -40,142 +40,143 @@
         });
 
         var statsByPhrases = phraseDimension.group().reduce(
-                function (p, v) {
-                    p.meanSalary += +v["meanSalary"];
-                    p.jobs += +v["jobsCount"];
-                    p.jobsOver100k += +v["jobsOver100kCount"];
-                    // p.radius = Math.log(p.jobsOver100k) / Math.log(1.00001);
-                    p.radius = p.jobsOver100k;
-                    if (p.radius > 100000) p.radius = 100000 + Math.log(p.jobsOver100k);
-                    ++p.count;
-                    return p;
-                },
-                function (p, v) {
-                    p.meanSalary -= +v["meanSalary"];
-                    if (p.meanSalary < 0.001) p.meanSalary = 0; // do some clean up
-                    p.jobs -= +v["jobsCount"];
-                    p.jobsOver100k -= +v["jobsOver100kCount"];
-                    p.radius = p.jobsOver100k;
-                    if (p.radius > 100000) p.radius = 100000 + Math.log(p.jobsOver100k);
-                    --p.count;
-                    return p;
-                },
-                function () {
-                    return {meanSalary: 0, jobs: 0, jobsOver100k:0, count: 0, radius: 0}
-                }
-        );
+            function (p, v) {
+                p.meanSalary += +v["meanSalary"];
+                p.jobs += +v["jobsCount"];
+                p.jobsOver100k += +v["jobsOver100kCount"];
+// p.radius = Math.log(p.jobsOver100k) / Math.log(1.00001);
+p.radius = p.jobsOver100k;
+if (p.radius > 100000) p.radius = 100000 + Math.log(p.jobsOver100k);
+++p.count;
+return p;
+},
+function (p, v) {
+    p.meanSalary -= +v["meanSalary"];
+if (p.meanSalary < 0.001) p.meanSalary = 0; // do some clean up
+p.jobs -= +v["jobsCount"];
+p.jobsOver100k -= +v["jobsOver100kCount"];
+p.radius = p.jobsOver100k;
+if (p.radius > 100000) p.radius = 100000 + Math.log(p.jobsOver100k);
+--p.count;
+return p;
+},
+function () {
+    return {meanSalary: 0, jobs: 0, jobsOver100k:0, count: 0, radius: 0}
+}
+);
 
         userChart /* dc.rowChart('#day-of-week-chart', 'chartGroup') */
         .width(180)
         .height(180)
-        // .margins({top: 20, left: 10, right: 10, bottom: 20})
-        .group(userGroup)
-        .dimension(userDimension)
-        // .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
-        // .label(function (d) {
-        //     return d.key.split('.')[1];
-        // })
+// .margins({top: 20, left: 10, right: 10, bottom: 20})
+.group(userGroup)
+.dimension(userDimension)
+// .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
+// .label(function (d) {
+//     return d.key.split('.')[1];
+// })
 
-        // .title(function (d) {
-        //     return d.value;
-        // })
-        .elasticX(true)
-        .xAxis().ticks(4);
+// .title(function (d) {
+//     return d.value;
+// })
+.elasticX(true)
+.xAxis().ticks(4);
 
-        documentChart /* dc.rowChart('#day-of-week-chart', 'chartGroup') */
-        .width(180)
-        .height(180)
-        // .margins({top: 20, left: 10, right: 10, bottom: 20})
-        .group(documentGroup)
-        .dimension(documentDimension)
-        // .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
-        // .label(function (d) {
-        //     return d.key.split('.')[1];
-        // })
+documentChart /* dc.rowChart('#day-of-week-chart', 'chartGroup') */
+.width(180)
+.height(180)
+// .margins({top: 20, left: 10, right: 10, bottom: 20})
+.group(documentGroup)
+.dimension(documentDimension)
+// .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
+// .label(function (d) {
+//     return d.key.split('.')[1];
+// })
 
-        // .title(function (d) {
-        //     return d.value;
-        // })
-        .elasticX(true)
-        .xAxis().ticks(4);
+// .title(function (d) {
+//     return d.value;
+// })
+.elasticX(true)
+.xAxis().ticks(4);
 
 
-        d3.json("static/js/us-states.json").then(function (statesJson) {
-            var width = 990;
-            var height = 500;
+d3.json("static/js/us-states.json").then(function (statesJson) {
+    var width = 990;
+    var height = 500;
 
-            // D3 Projection
-            var projection = d3.geoAlbersUsa()
-                   .translate([width/4, height/4])    
-                   .scale([500]);
+// D3 Projection
+var projection = d3.geoAlbersUsa()
+.translate([width/4, height/4])    
+.scale([500]);
 
-            usChart.width(width)
-                    .height(height)
-                    .dimension(stateDimension)
-                    .group(stateJobsSum)
-                    .colors(d3.scaleQuantize().range(["#E2F2FF", "#C4E4FF", "#9ED2FF", "#81C5FF", "#6BBAFF", "#51AEFF", "#36A2FF", "#1E96FF", "#0089FF", "#0061B5"]))
-                    .colorDomain([0, 200])
-                    .colorCalculator(function (d) { return d ? usChart.colors()(d) : '#ccc'; })
-                    .overlayGeoJson(statesJson.features, "state", function (d) {
-                        return d.properties.name;
-                    })
-                .projection(projection)
-                .valueAccessor(function(kv) {
-                    console.log(kv);
-                    return kv.value;
-                })
-                    .title(function (d) {
-                        return "State: " + d.key + "\nTotal jobs: " + numberFormat(d.value ? d.value : 0) + "M";
-                    });
+usChart.width(width)
+.height(height)
+.dimension(stateDimension)
+.group(stateJobsSum)
+.colors(d3.scaleQuantize().range(["#E2F2FF", "#C4E4FF", "#9ED2FF", "#81C5FF", "#6BBAFF", "#51AEFF", "#36A2FF", "#1E96FF", "#0089FF", "#0061B5"]))
+.colorDomain([0, 200])
+.colorCalculator(function (d) { return d ? usChart.colors()(d) : '#ccc'; })
+.overlayGeoJson(statesJson.features, "state", function (d) {
+    return d.properties.name;
+})
+.projection(projection)
+.valueAccessor(function(kv) {
+    console.log(kv);
+    return kv.value;
+})
+.title(function (d) {
+    return "State: " + d.key + "\nTotal jobs: " + numberFormat(d.value ? d.value : 0) + "M";
+});
 
-            phraseChart.width(990)
-                    .height(500)
-                    .margins({top: 10, right: 50, bottom: 30, left: 80})
-                    .dimension(phraseDimension)
-                    .group(statsByPhrases)
-                    .colors(d3.scaleOrdinal(d3.schemeCategory10))
-                    .keyAccessor(function (p) {
-                        // return p.value.meanSalary;
-                        return p.value.count > 0 ? p.value.meanSalary / p.value.count : 0;
-                    })
-                    .valueAccessor(function (p) {
-                        return p.value.count > 0 ? p.value.jobs / p.value.count : 0;
-                        // return p.value.count > 0 ? p.value.jobs / p.value.count : 0;
-                    })
-                    .radiusValueAccessor(function (p) {
-                        return p.value.radius;
-                    })
-                    .y(d3.scaleLog().domain([0, 1000]))
-                    .x(d3.scaleLinear().domain([0, 200]))
-                    .r(d3.scaleLinear().domain([0, 200000]))
-                    .minRadiusWithLabel(5)
-                    .elasticY(true)
-                    // .yAxisPadding(100)
-                    .elasticX(true)
-                    .xAxisPadding(5)
-                    .maxBubbleRelativeSize(0.07)
-                    .renderHorizontalGridLines(true)
-                    .renderVerticalGridLines(true)
-                    .renderLabel(true)
-                    .renderTitle(true)
-                    .title(function (p) {
-                        return p.key
-                                + "\n"
-                                + "Average Salary: $" + numberFormat(p.value.count > 0 ? p.value.meanSalary / p.value.count : 0) + "k\n"
-                                + "Number of Jobs: " + numberFormat(p.value.count > 0 ? p.value.jobs / p.value.count : 0) + "\n"
-                                + "Jobs over $100k: " + numberFormat(p.value.count > 0 ? p.value.jobsOver100k / p.value.count : 0) + "\n";
-                                // + "radius: " + numberFormat(p.value.radius);
-                    });
-            phraseChart.yAxis().tickFormat(function (s) {
-                return s + " jobs";
-            });
-            phraseChart.xAxis().tickFormat(function (s) {
-                return s + "k";
-            });
+phraseChart.width(1200)
+.height(800)
+.margins({top: 10, right: 10, bottom: 30, left: 80})
+.useViewBoxResizing(true)
+.dimension(phraseDimension)
+.group(statsByPhrases)
+.colors(d3.scaleOrdinal(d3.schemeCategory10))
+.keyAccessor(function (p) {
+// return p.value.meanSalary;
+return p.value.count > 0 ? p.value.meanSalary / p.value.count : 0;
+})
+.valueAccessor(function (p) {
+    return p.value.count > 0 ? p.value.jobs / p.value.count : 0;
+// return p.value.count > 0 ? p.value.jobs / p.value.count : 0;
+})
+.radiusValueAccessor(function (p) {
+    return p.value.radius;
+})
+.y(d3.scaleLog().domain([0, 1000]))
+.x(d3.scaleLinear().domain([0, 200]))
+.r(d3.scaleLinear().domain([0, 200000]))
+.minRadiusWithLabel(5)
+.elasticY(true)
+// .yAxisPadding(100)
+.elasticX(true)
+.xAxisPadding(5)
+.maxBubbleRelativeSize(0.07)
+.renderHorizontalGridLines(true)
+.renderVerticalGridLines(true)
+.renderLabel(true)
+.renderTitle(true)
+.title(function (p) {
+    return p.key
+    + "\n"
+    + "Average Salary: $" + numberFormat(p.value.count > 0 ? p.value.meanSalary / p.value.count : 0) + "k\n"
+    + "Number of Jobs: " + numberFormat(p.value.count > 0 ? p.value.jobs / p.value.count : 0) + "\n"
+    + "Jobs over $100k: " + numberFormat(p.value.count > 0 ? p.value.jobsOver100k / p.value.count : 0) + "\n";
+// + "radius: " + numberFormat(p.value.radius);
+});
+phraseChart.yAxis().tickFormat(function (s) {
+    return s + " jobs";
+});
+phraseChart.xAxis().tickFormat(function (s) {
+    return s + "k";
+});
 
-            dc.renderAll();
-        });
-    });
+dc.renderAll();
+});
+});
 </script>
 {% endblock %}
 
@@ -187,200 +188,198 @@
 <div class="jumbotron" style="text-align: center; margin-top: 10px;">
 
 
-<div class="row">
-    <div class="col-md-3 d-none d-lg-block">
-<img src="static/images/uncle_moneybags.png">
+    <div class="row">
+        <div class="col-md-3 d-none d-lg-block">
+            <img src="static/images/uncle_moneybags.png">
+        </div>
+        <div class="col-md-9">
+
+            <h1 style="text-align: left;">Job market for <i class="fa fa-hand-point-right"></i> {{ phrase.phrase_text }}</h1>
+
+            <p style="text-align: left; padding: 10px 0px 10px 0px;">{% if phrase.search_count == 1 %}New search phrase!{% else %}This phrase has been searched {{ phrase.search_count }} times.{% endif %} There are {{ '{:,.0f}'.format(phrase.findings[-1].jobs_count) if phrase.findings[-1].jobs_count }} jobs in this market segment with an average salary of {{ '${:,.0f}'.format(phrase.findings[-1].mean_salary) if phrase.findings[-1].mean_salary }}. There are {{ '{:,.0f}'.format(phrase.findings[-1].jobs_above_100k_count) if phrase.findings[-1].jobs_above_100k_count }} jobs over $100k.</p>
+
+            <div class="row">
+                <div class="col-md-6">
+
+                    <form class="form-inline justify-content-center" method="get" action="{{ url_for('phrase_list') }}">
+                        <div class="input-group pulsor">
+                            <input class="form-control border-secondary border-right-0 rounded-0" type="text" name="term" placeholder="Search phrase">
+                            <span class="input-group-append">
+                                <button class="btn btn-outline-secondary border-left-0 rounded-0 rounded-right" type="submit">
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </span>
+                        </div>
+                    </form>
+
+                    <p style="font-size: medium; padding: 10px 0px 10px 0px;"><a href="{{ url_for('create_document') }}">Scan your resume or Linkedin profile</a></p>
+
+
+                </div>
+
+                <div class="col-md-6">
+                    <p>Sorry, Beta Invitations are full. <br/>Sign up for updates!</p>
+
+                    <!-- inline form -->
+
+                    <!-- <form class="form-inline justify-content-center">
+                    <div class="form-group">
+                    <label class="sr-only" for="email">Email address</label>
+                    <div class="input-group">
+                    <div class="input-group-text">@</div>
+                    <input type="email" class="form-control" id="email" placeholder="Your email">
+
+                    </div>    
+
+
+                    </div>  
+                    <button type="submit" class="btn btn-primary">Sign up</button>      
+
+                    </form> -->
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-    <div class="col-md-9">
 
-<h1 style="text-align: left;">Job market for <i class="fa fa-hand-point-right"></i> {{ phrase.phrase_text }}</h1>
-
-  <p style="text-align: left; padding: 10px 0px 10px 0px;">{% if phrase.search_count == 1 %}New search phrase!{% else %}This phrase has been searched {{ phrase.search_count }} times.{% endif %} There are {{ '{:,.0f}'.format(phrase.findings[-1].jobs_count) if phrase.findings[-1].jobs_count }} jobs in this market segment with an average salary of {{ '${:,.0f}'.format(phrase.findings[-1].mean_salary) if phrase.findings[-1].mean_salary }}. There are {{ '{:,.0f}'.format(phrase.findings[-1].jobs_above_100k_count) if phrase.findings[-1].jobs_above_100k_count }} jobs over $100k.</p>
-
-<div class="row">
-    <div class="col-md-6">
-
-<form class="form-inline justify-content-center" method="get" action="{{ url_for('phrase_list') }}">
-          <div class="input-group pulsor">
-      <input class="form-control border-secondary border-right-0 rounded-0" type="text" name="term" placeholder="Search phrase">
-      <span class="input-group-append">
-        <button class="btn btn-outline-secondary border-left-0 rounded-0 rounded-right" type="submit">
-            <i class="fa fa-search"></i>
-        </button>
-      </span>
-</div>
-        </form>
-
-        <p style="font-size: medium; padding: 10px 0px 10px 0px;"><a href="{{ url_for('create_document') }}">Scan your resume or Linkedin profile</a></p>
-
-    
-</div>
-
-<div class="col-md-6">
-	<p>Sorry, Beta Invitations are full. <br/>Sign up for updates!</p>
-
-  <!-- inline form -->
-
-  <!-- <form class="form-inline justify-content-center">
-    <div class="form-group">
-     <label class="sr-only" for="email">Email address</label>
-       <div class="input-group">
-           <div class="input-group-text">@</div>
-            <input type="email" class="form-control" id="email" placeholder="Your email">
-
-       </div>    
-
-
-    </div>  
-  <button type="submit" class="btn btn-primary">Sign up</button>      
-
-  </form> -->
-
-	</div>
-
-</div>
-
-</div>
-
-  </div>
-
-
-</div>
+</div><!-- end jombotron -->
 
 {% endif %}
 
 <div class="row">
     <div class="col-md-12">
-    <div id="phrase-chart">
-        <strong>Job market by Search Phrase</strong> (y: number of jobs, x: average salary, radius: number of jobs over $100k)
-        <a class="reset" href="javascript:phraseChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+        <div id="phrase-chart" class="svg-container">
+            <strong>Job market by Search Phrase</strong> (y: number of jobs, x: average salary, radius: number of jobs over $100k)
+            <a class="reset" href="javascript:phraseChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
 
+        </div>
     </div>
-    </div>
-  </div>
+</div>
 
 
 <!-- <div class="row">
-  <div class="col-md-3">
-      
-      <div class="panel panel-default">
-          <div class="panel-heading">
-            <h3 class="panel-title">By User</h3>
-          </div>
-          <div class="panel-body">
-            <div id="user-chart">
-        <a class="reset" href="javascript:usChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
-        <span class="reset" style="display: none;"> | Current filter: <span class="filter"></span></span>
+<div class="col-md-3">
 
-    </div>
-          </div>
-        </div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<h3 class="panel-title">By User</h3>
+</div>
+<div class="panel-body">
+<div id="user-chart">
+<a class="reset" href="javascript:usChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+<span class="reset" style="display: none;"> | Current filter: <span class="filter"></span></span>
 
-  </div>
-  <div class="col-md-3">
-      
+</div>
+</div>
+</div>
 
-      <div class="panel panel-default">
-          <div class="panel-heading">
-            <h3 class="panel-title">By Document</h3>
-          </div>
-          <div class="panel-body">
-            <div id="document-chart">
-        <a class="reset" href="javascript:usChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
-        <span class="reset" style="display: none;"> | Current filter: <span class="filter"></span></span>
+</div>
+<div class="col-md-3">
 
-    </div>
-          </div>
-        </div>
 
-  </div>
-  <div class="col-md-6">
-      
-            
-      <div class="panel panel-default">
-          <div class="panel-heading">
-            <h3 class="panel-title">Job Distribution by State (color: total number of jobs)</h3>
-          </div>
-          <div class="panel-body">
-            <div id="us-chart">
-        <a class="reset" href="javascript:usChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
-        <span class="reset" style="display: none;"> | Current filter: <span class="filter"></span></span>
+<div class="panel panel-default">
+<div class="panel-heading">
+<h3 class="panel-title">By Document</h3>
+</div>
+<div class="panel-body">
+<div id="document-chart">
+<a class="reset" href="javascript:usChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+<span class="reset" style="display: none;"> | Current filter: <span class="filter"></span></span>
 
-    </div>
-          </div>
-        </div>
+</div>
+</div>
+</div>
 
-  </div>
+</div>
+<div class="col-md-6">
+
+
+<div class="panel panel-default">
+<div class="panel-heading">
+<h3 class="panel-title">Job Distribution by State (color: total number of jobs)</h3>
+</div>
+<div class="panel-body">
+<div id="us-chart">
+<a class="reset" href="javascript:usChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+<span class="reset" style="display: none;"> | Current filter: <span class="filter"></span></span>
+
+</div>
+</div>
+</div>
+
+</div>
 </div> -->
 
 
 <div class="row">
     <div class="col-md-12">
 
-<h1>All Phrases</h1>
+        <h1>All Phrases</h1>
 
-{% if phrases %}
+        {% if phrases %}
 
-<table class="table-striped">
+        <table class="table table-striped">
 
-	<tr>
-		<th>Phrase</th>
-		<th>Search Count</th>
-		<th>Last searched</th>
-		<th>Jobs</th>
-		<th>Mean Salary</th>
-		<th>Jobs above $100k</th>
-	</tr>
+            <tr>
+                <th>Phrase</th>
+                <th>Search Count</th>
+                <th>Last searched</th>
+                <th>Jobs</th>
+                <th>Mean Salary</th>
+                <th>Jobs above $100k</th>
+            </tr>
 
-	{% for this_phrase in phrases %}
+            {% for this_phrase in phrases %}
 
-	<tr>
-		<td><a href="{{ url_for('phrase_view', phrase_slug=this_phrase.slug) }}">{{ this_phrase.phrase_text }}</a></td>
-		<td>{{ this_phrase.search_count }} </td>
-		<td>{{ this_phrase.updated_date.strftime('%x') if this_phrase.updated_date else this_phrase.created_date.strftime('%x') if this_phrase.created_date }} </td>
-		<td>{{ '{:,.0f}'.format(this_phrase.jobs_count) if this_phrase.jobs_count }} </td>
-		<td>{{ '${:,.0f}'.format(this_phrase.mean_salary) if this_phrase.mean_salary }} </td>
-		<td>{{ '{:,.0f}'.format(this_phrase.jobs_above_100k_count) if this_phrase.jobs_above_100k_count }} </td>
-	</tr>
-	{% endfor %}
-</table>
-{% else %}
-<p>There are no search phrases</p>
+            <tr>
+                <td><a href="{{ url_for('phrase_view', phrase_slug=this_phrase.slug) }}">{{ this_phrase.phrase_text }}</a></td>
+                <td>{{ this_phrase.search_count }} </td>
+                <td>{{ this_phrase.updated_date.strftime('%x') if this_phrase.updated_date else this_phrase.created_date.strftime('%x') if this_phrase.created_date }} </td>
+                <td>{{ '{:,.0f}'.format(this_phrase.jobs_count) if this_phrase.jobs_count }} </td>
+                <td>{{ '${:,.0f}'.format(this_phrase.mean_salary) if this_phrase.mean_salary }} </td>
+                <td>{{ '{:,.0f}'.format(this_phrase.jobs_above_100k_count) if this_phrase.jobs_above_100k_count }} </td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>There are no search phrases</p>
 
-{% endif %}
+        {% endif %}
 
 
 
-{% if current_user.is_anonymous %}
+        {% if current_user.is_anonymous %}
 
-<p>
-<p>Sign up to save your own search phrases</p>
+        <p>Sign up to save your own search phrases</p>
 
-{% else %}
+        {% else %}
 
-<h2>My Phrases</h2>
+        <h2>My Phrases</h2>
 
-{% if my_phrases %}
+        {% if my_phrases %}
 
-<table>
+        <table>
 
-	{% for this_phrase in my_phrases %}
+            {% for this_phrase in my_phrases %}
 
-	<tr>
-		<td><a href="{{ url_for('phrase_view', phrase_slug=this_phrase.phrase.slug) }}">{{ this_phrase.phrase.phrase_text }}</a></td>
-		<td>{{ this_phrase.phrase.search_count }} </td>
-		<td>{{ this_phrase.phrase.created_date }} </td>
-		<td>{{ this_phrase.phrase.updated_date }} </td>
-	</tr>
-	{% endfor %}
-</table>
-{% else %}
-<p>You have no search phrases</p>
+            <tr>
+                <td><a href="{{ url_for('phrase_view', phrase_slug=this_phrase.phrase.slug) }}">{{ this_phrase.phrase.phrase_text }}</a></td>
+                <td>{{ this_phrase.phrase.search_count }} </td>
+                <td>{{ this_phrase.phrase.created_date }} </td>
+                <td>{{ this_phrase.phrase.updated_date }} </td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>You have no search phrases</p>
 
-{% endif %}
-{% endif %}
+        {% endif %}
+        {% endif %}
 
-</div>
+    </div>
 </div>
 
 {% endblock %}
