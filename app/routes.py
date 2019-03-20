@@ -247,7 +247,7 @@ def document(slug):
 
     document = Document.get_by_slug(slug=slug)
 
-    phrases = Document.get_phrases(document=document)
+    phrases = Document.get_phrases(document)
 
     return render_template(
         "user-document.html",
@@ -280,7 +280,7 @@ def document_phrase_list_api(slug):
 
     document = Document.get_by_slug(slug=slug)
 
-    phrases = Document.get_phrases(document=document)
+    phrases = Document.get_phrases(document)
 
     result = {}
     phrase_list = []

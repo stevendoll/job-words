@@ -6,13 +6,16 @@ import datetime as dt
 class PhraseAssociation(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     phrase_id = db.Column(db.Integer, db.ForeignKey("phrase.id"), nullable=False)
-    document_id = db.Column(db.Integer, db.ForeignKey("document.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    phraseset_id = db.Column(db.Integer, db.ForeignKey("phraseset.id"))
     created_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     phrase = db.relationship("Phrase")
     user = db.relationship("User")
+    phraseset = db.relationship("PhraseSet")
     document = db.relationship("Document")
+    cluster = db.relationship("Cluster")
+    comparison = db.relationship("Comparison")
 
     def serialize(self):
         result = {}
