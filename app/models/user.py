@@ -28,8 +28,8 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
     created_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_date = db.Column(db.DateTime(timezone=True), onupdate=func.now())
-    phrases = db.relationship("UserPhrase")
-    phrase_groups = db.relationship("PhraseGroup")
+    phrases = db.relationship("PhraseAssociation")
+    documents = db.relationship("Document")
     roles = db.relationship(
         "Role", secondary=roles_users, backref=db.backref("users", lazy="dynamic")
     )

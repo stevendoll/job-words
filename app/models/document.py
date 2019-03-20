@@ -6,40 +6,49 @@ from sqlalchemy.orm import column_property
 import re
 import uuid
 from app import app, db
-from app.models import UserPhrase, Phrase
+from app.models import PhraseAssociation, Phrase
 
 PHRASE_MINIMUM_JOBS = 100
 
+# phrases have findings
+# documents have document-phrases
+# users have documents
+# documents belong to users
+# users have phrases (optional)
+# users have comparisons (optional)
 
-class PhraseGroup(db.Model):
+# rename userphrase to phraseassociation
+
+
+
+class Document(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.Text(), nullable=False)
-    type = db.Column(db.String(64), index=True, nullable=False, default='Document')
     slug = db.Column(db.String(64), index=True, unique=True, nullable=False)
     body = db.Column(db.Text())
-    phrases = db.relationship("UserPhrase")
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    phrases = db.relationship("PhraseAssociation")
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     user = db.relationship("User")
     created_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_date = db.Column(db.DateTime(timezone=True), onupdate=func.now())
 
     def analyze(self):
 
-        for phrase in self.phrase_group_phrases:
+        for phrase in self.document_phrases:
             Phrase.lookup(phrase.phrase, user=self.user)
 
     def __repr__(self):
-        return "<PhraseGroup {}>".format(self.title)
+        return "<Document {}>".format(self.title)
 
     @staticmethod
     def get_all():
-        return PhraseGroup.query.all()
+        return Document.query.all()
 
     @staticmethod
-    def get_phrases(phrase_group):
+    def get_phrases(document):
         return (
-            Phrase.query.join(UserPhrase)
-            .filter(UserPhrase.phrase_group == phrase_group)
+            Phrase.query.join(PhraseAssociation)
+            .filter(PhraseAssociation.document == document)
             .filter(Phrase.jobs_count > PHRASE_MINIMUM_JOBS)
             .order_by(desc(Phrase.mean_salary))
             .all()
@@ -52,26 +61,26 @@ class PhraseGroup(db.Model):
         title = re.sub(regex, "", title.strip())
         slug = str(uuid.uuid4())[:8]
 
-        phrase_group = PhraseGroup(title=title, body=body, slug=slug, user=user, type='Document')
-        db.session.add(phrase_group)
+        document = Document(title=title, body=body, slug=slug, user=user)
+        db.session.add(document)
 
         phrase_texts = TextBlob(body).noun_phrases
 
         app.logger.info(phrase_texts)
 
-        Phrase.add_multiple(phrase_texts, user, phrase_group)
+        Phrase.add_multiple(phrase_texts, user, document)
 
         db.session.commit()
 
-        return phrase_group
+        return document
 
     @staticmethod
     def get_by_slug(slug):
 
-        this_phrase_group = None
+        this_document = None
 
         if len(slug) > 0:
 
-            phrase_group_in_db = PhraseGroup.query.filter_by(slug=slug).first()
+            document_in_db = Document.query.filter_by(slug=slug).first()
 
-        return phrase_group_in_db
+        return document_in_db

@@ -10,7 +10,7 @@ from config import basedir
 
 app.config.from_object(TestConfig)
 
-from app.models import User, Role, Phrase, UserPhrase, Finding, PhraseGroup
+from app.models import User, Role, Phrase, PhraseAssociation, Finding, Document
 
 
 class StartupCase(unittest.TestCase):
@@ -31,7 +31,7 @@ class StartupCase(unittest.TestCase):
     def test_index(self):
         response = self.client().get('/', content_type='html/text')
         self.assertEqual(response.status_code, 200)
-        self.assertIn('Job Words', str(response.data))
+        self.assertIn('Resumopoly', str(response.data))
 
 
 class UserCase(unittest.TestCase):
@@ -261,7 +261,7 @@ class RoleCase(unittest.TestCase):
         self.assertFalse(user.has_role('User'))
         self.assertFalse(user.has_role('Admin'))
 
-    # def test_phrase_group_list_not_authenticated(self):
+    # def test_document_list_not_authenticated(self):
     #     result = self.app.client.get('/documents', content_type='html/text')
     #     self.assertEqual(result.status_code, 302)
     #     self.assertNotIn('API incremental update started', str(result.data))
@@ -687,7 +687,7 @@ class PhraseCase(unittest.TestCase):
         self.assertIn('scikit-learn python', str(response.data))
 
 
-class UserPhraseCase(unittest.TestCase):
+class PhraseAssociationCase(unittest.TestCase):
     def setUp(self):
         UserCase.setUp(self)
 
@@ -704,10 +704,10 @@ class UserPhraseCase(unittest.TestCase):
         db.session.add_all([p1, p2, p3])
 
         # create user phrases
-        up1 = UserPhrase(user=u1, phrase=p1) # jack is project manager
-        up2 = UserPhrase(user=u2, phrase=p3) # mary is an engineer
-        up3 = UserPhrase(user=u1, phrase=p3) # jack is an engineer
-        up4 = UserPhrase(user=u1, phrase=p3) # jack searches again for engineer
+        up1 = PhraseAssociation(user=u1, phrase=p1) # jack is project manager
+        up2 = PhraseAssociation(user=u2, phrase=p3) # mary is an engineer
+        up3 = PhraseAssociation(user=u1, phrase=p3) # jack is an engineer
+        up4 = PhraseAssociation(user=u1, phrase=p3) # jack searches again for engineer
         db.session.add_all([up1, up2, up3])
         db.session.commit()
 
@@ -721,14 +721,14 @@ class UserPhraseCase(unittest.TestCase):
     def logout(self):
         return UserCase.logout(self)
 
-    def test_get_user_phrase(self):
+    def test_get_phrase_association(self):
         # search phrase
         user_in_db = db.session.query(User).filter_by(username='jack').first()
         phrase_in_db = db.session.query(Phrase).filter_by(phrase_text='engineer').first()
-        user_phrase_in_db = db.session.query(UserPhrase).filter_by(phrase_id=phrase_in_db.id, user_id=user_in_db.id).first()
-        self.assertEqual(user_phrase_in_db.user_id, user_in_db.id)
+        phrase_association_in_db = db.session.query(PhraseAssociation).filter_by(phrase_id=phrase_in_db.id, user_id=user_in_db.id).first()
+        self.assertEqual(phrase_association_in_db.user_id, user_in_db.id)
 
-    def test_view_user_phrase(self):
+    def test_view_phrase_association(self):
         # authenticated
         self.login('mary','marypassword')
         response = self.app.client.get('/users/mary/phrases', content_type='html/text')
@@ -736,7 +736,7 @@ class UserPhraseCase(unittest.TestCase):
         self.assertNotIn('project manager', str(response.data))
         self.assertIn('engineer', str(response.data))
 
-    def test_create_user_phrase(self):
+    def test_create_phrase_association(self):
         # not authenticated
         response = self.app.client.get('/users', content_type='teml/text')
         self.assertEqual(response.status_code, 302)
@@ -776,9 +776,9 @@ class FindingCase(unittest.TestCase):
         # create findings
         f1 = Finding(phrase=p1, created_date=dt.datetime(2018,4,1,0,0,0), mean_salary=110000, jobs_count=30000, jobs_above_100k_count=5000)
         f2 = Finding(phrase=p3, created_date=dt.datetime(2018,8,15,0,0,0), mean_salary=85000, jobs_count=50000, jobs_above_100k_count=6000)
-        f3 = Finding(phrase=p3, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=95000, jobs_count=60000, jobs_above_100k_count=7000)
-        f4 = Finding(phrase=p4, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=95000, jobs_count=5, jobs_above_100k_count=1)
-        f5 = Finding(phrase=p3, created_date=dt.datetime(2019,2,10,0,0,0), mean_salary=92000, jobs_count=62000, jobs_above_100k_count=7000)
+        f3 = Finding(phrase=p3, created_date=dt.datetime(2019,3,15,0,0,0), mean_salary=95000, jobs_count=60000, jobs_above_100k_count=7000)
+        f4 = Finding(phrase=p4, created_date=dt.datetime(2019,3,15,0,0,0), mean_salary=95000, jobs_count=5, jobs_above_100k_count=1)
+        f5 = Finding(phrase=p3, created_date=dt.datetime(2019,3,10,0,0,0), mean_salary=92000, jobs_count=62000, jobs_above_100k_count=7000)
         db.session.add_all([f1, f2, f3, f4, f5])
         db.session.commit()
 
@@ -901,9 +901,9 @@ class DocumentCase(unittest.TestCase):
         db.session.add_all([u1, u2])
 
         # create phrases
-        d1 = PhraseGroup(title='jack resume', slug='jack-resume', user=u1)
-        d2 = PhraseGroup(title='mary linkedin', slug='mary-linkedin', user=u2)
-        d3 = PhraseGroup(title='mary resume', slug='mary-resume', user=u2)
+        d1 = Document(title='jack resume', slug='jack-resume', user=u1)
+        d2 = Document(title='mary linkedin', slug='mary-linkedin', user=u2)
+        d3 = Document(title='mary resume', slug='mary-resume', user=u2)
         db.session.add_all([d1, d2, d3])
 
         # create phrases
@@ -922,11 +922,11 @@ class DocumentCase(unittest.TestCase):
         f5 = Finding(phrase=p5, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=60000, jobs_count=5, jobs_above_100k_count=1)
         db.session.add_all([f1, f2, f3, f4, f5])
 
-        # associate phrases with users and phrase_groups
-        up1 = UserPhrase(user=u1, phrase=p1, phrase_group=d1) # jack resume has project manager
-        up2 = UserPhrase(user=u2, phrase=p4, phrase_group=d2) # mary linkedin profile has mechanical engineer
-        up3 = UserPhrase(user=u2, phrase=p3, phrase_group=d3) # mary resume has engineer
-        up4 = UserPhrase(user=u1, phrase=p3, phrase_group=d1) # jack resume has engineer
+        # associate phrases with users and documents
+        up1 = PhraseAssociation(user=u1, phrase=p1, document=d1) # jack resume has project manager
+        up2 = PhraseAssociation(user=u2, phrase=p4, document=d2) # mary linkedin profile has mechanical engineer
+        up3 = PhraseAssociation(user=u2, phrase=p3, document=d3) # mary resume has engineer
+        up4 = PhraseAssociation(user=u1, phrase=p3, document=d1) # jack resume has engineer
         db.session.add_all([up1, up2, up3, up4])
 
 
@@ -952,8 +952,8 @@ class DocumentCase(unittest.TestCase):
     def test_get_document(self):
         # search phrase
         title = 'jack resume'
-        phrase_group_in_db = db.session.query(PhraseGroup).filter_by(title=title).first()
-        self.assertEqual(phrase_group_in_db.title, title)
+        document_in_db = db.session.query(Document).filter_by(title=title).first()
+        self.assertEqual(document_in_db.title, title)
 
     def test_view_document_in_list(self):
         # not authenticated
@@ -966,42 +966,42 @@ class DocumentCase(unittest.TestCase):
         body = 'pilot'
         username = 'mary'
         password = 'marypassword'
-        self.create_phrase_group(title, body, username, password)
+        self.create_document(title, body, username, password)
         response = self.app.client.get('/documents', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn('mary resume', str(response.data))
 
     def test_generate_document_slug(self):
 
-        # create a new phrase_group with the same title
+        # create a new document with the same title
         title = 'mary resume'
         body = 'minister'
         username = 'mary'
         password = 'marypassword'
-        self.create_phrase_group(title, body, username, password)
+        self.create_document(title, body, username, password)
         response = self.app.client.get('/documents', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn('mary resume', str(response.data))
         
-        # check if 2 phrase_groups in db
-        phrase_groups_in_db = db.session.query(PhraseGroup).filter_by(title=title).all()
-        self.assertEqual(len(phrase_groups_in_db), 2)
+        # check if 2 documents in db
+        documents_in_db = db.session.query(Document).filter_by(title=title).all()
+        self.assertEqual(len(documents_in_db), 2)
 
         # check that slugs are different
-        phrase_groups_in_db = db.session.query(PhraseGroup).filter_by(slug='mary-resume').all()
-        self.assertEqual(len(phrase_groups_in_db), 1)
+        documents_in_db = db.session.query(Document).filter_by(slug='mary-resume').all()
+        self.assertEqual(len(documents_in_db), 1)
 
     def test_get_latest_finding_in_document_phrases(self):
         # search phrase
-        phrase_group_in_db = PhraseGroup.query.filter_by(slug='mary-resume').first()
-        self.assertEqual(phrase_group_in_db.phrases[0].phrase.mean_salary, 95000)
+        document_in_db = Document.query.filter_by(slug='mary-resume').first()
+        self.assertEqual(document_in_db.phrases[0].phrase.mean_salary, 95000)
 
     def test_analyze_document_phrases(self):
         title = 'mary new resume'
         body = 'A confident digital product manager, data scientist, MBA and entrepreneur, I deliver outcomes - not outputs.'
         username = 'mary'
         password = 'marypassword'
-        self.create_phrase_group(title, body, username, password)
+        self.create_document(title, body, username, password)
         response = self.app.client.get('/phrases', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn('mba', str(response.data))
@@ -1010,8 +1010,8 @@ class DocumentCase(unittest.TestCase):
     def test_get_user_document(self):
         # search phrase
         user_in_db = db.session.query(User).filter_by(username='jack').first()
-        phrase_group_in_db = db.session.query(PhraseGroup).filter_by(title='jack resume').first()
-        self.assertEqual(phrase_group_in_db.user_id, user_in_db.id)
+        document_in_db = db.session.query(Document).filter_by(title='jack resume').first()
+        self.assertEqual(document_in_db.user_id, user_in_db.id)
 
     def test_view_user_documents(self):
         # authenticated
@@ -1032,7 +1032,7 @@ class DocumentCase(unittest.TestCase):
 
         title = 'mary cv'
         body = 'mary new body'
-        self.create_phrase_group(title, body, username, password)
+        self.create_document(title, body, username, password)
         response = self.app.client.get('/users/mary/documents', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn('mary cv', str(response.data))
@@ -1046,8 +1046,8 @@ class DocumentCase(unittest.TestCase):
         self.assertNotIn('mary linkedin', str(response.data))
         self.assertIn('mary resume', str(response.data))
 
-    # a different user can't see the phrase_group with the slug
-    # def test_view_user_phrase_group_authorized(self):
+    # a different user can't see the document with the slug
+    # def test_view_user_document_authorized(self):
     #     self.login('john','johnpassword')
     #     response = self.app.client.get('/documents/mary-resume', content_type='html/text')
     #     self.assertEqual(response.status_code, 200)
@@ -1057,7 +1057,7 @@ class DocumentCase(unittest.TestCase):
     #     self.assertEqual(response.status_code, 200)
     #     self.assertNotIn('mary resume', str(response.data))
 
-    # the phrase_group shows the top 5 phrases by most recent finding value
+    # the document shows the top 5 phrases by most recent finding value
 
     # /api/documents/{slug}/phrases loaded in background
     def test_view_phrase_document_in_api(self):
@@ -1080,29 +1080,27 @@ class DocumentCase(unittest.TestCase):
         self.assertNotIn('"meanSalary": 85000', str(response.data))
         self.assertIn('"meanSalary": 95000', str(response.data))
 
-class ComparisonCase(unittest.TestCase):
+class ClusterCase(unittest.TestCase):
     def setUp(self):
         UserCase.setUp(self)
 
         # create users
-        u1 = User(username='jack', email='jack@example.com')
-        u2 = User(username='mary', email='mary@example.com')
-        u2.set_password('marypassword')
-        db.session.add_all([u1, u2])
+        u1 = User(username='mary', email='mary@example.com')
+        u1.set_password('marypassword')
+        db.session.add_all([u1])
 
         # create phrases
-        d1 = PhraseGroup(title='programming', slug='programming-languages', user=u1)
-        d2 = PhraseGroup(title='pink collar', slug='pink-collar')
-        d3 = PhraseGroup(title='gender words', slug='gender-words', user=u2)
-        db.session.add_all([d1, d2, d3])
+        pg1 = Document(title='programming', slug='programming-languages', user=u1)
+        pg2 = Document(title='pink collar', slug='pink-collar')
+        db.session.add_all([pg1, pg2])
 
         # create phrases
         p1 = Phrase(phrase_text='java', slug='java')
         p2 = Phrase(phrase_text='python', slug='python')
-        p3 = Phrase(phrase_text='nurse', slug='nurse')
+        p3 = Phrase(phrase_text='node', slug='node')
         p4 = Phrase(phrase_text='elementary school', slug='elementary-school')
         p5 = Phrase(phrase_text='collaborate', slug='collaborate')
-        p6 = Phrase(phrase_text='leader', slug='leader')
+        p6 = Phrase(phrase_text='pediatrician', slug='pediatrician')
         db.session.add_all([p1, p2, p3, p4, p5, p6])
 
         # create findings
@@ -1114,13 +1112,14 @@ class ComparisonCase(unittest.TestCase):
         f6 = Finding(phrase=p5, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=60000, jobs_count=5, jobs_above_100k_count=1)
         db.session.add_all([f1, f2, f3, f4, f5, f6])
 
-        # associate phrases with users and phrase_groups
-        up1 = UserPhrase(user=u1, phrase=p1, phrase_group=d1) # jack resume has project manager
-        up2 = UserPhrase(user=u2, phrase=p4, phrase_group=d2) # mary linkedin profile has mechanical engineer
-        up3 = UserPhrase(user=u2, phrase=p3, phrase_group=d3) # mary resume has engineer
-        up4 = UserPhrase(user=u1, phrase=p3, phrase_group=d1) # jack resume has engineer
-        db.session.add_all([up1, up2, up3, up4])
-
+        # associate phrases with users and documents
+        up1 = PhraseAssociation(user=u1, phrase=p1, document=pg1) # mary programming languages cluster
+        up2 = PhraseAssociation(user=u1, phrase=p2, document=pg1) # mary programming languages cluster
+        up3 = PhraseAssociation(user=u1, phrase=p3, document=pg1) # mary programming languages cluster
+        up4 = PhraseAssociation(phrase=p4, document=pg2) # anon pink collar
+        up5 = PhraseAssociation(phrase=p5, document=pg2) # anon pink collar
+        up6 = PhraseAssociation(phrase=p6, document=pg2) # anon pink collar
+        db.session.add_all([up1, up2, up3, up4, up5, up6])
 
         db.session.commit()
 
@@ -1133,144 +1132,145 @@ class ComparisonCase(unittest.TestCase):
     def logout(self):
         return UserCase.logout(self)
 
-    def create_comparison(self, title, body, username, password):
-        self.login(username, password)
+    def create_cluster(self, title, body, username=None, password=None):
+        if username and password:
+            self.login(username, password)
 
         return self.app.client.post('/documents', data=dict(
             title=title,
             body=body
         ), follow_redirects=True)
 
-    def test_get_phrase_group(self):
+    def test_get_cluster(self):
         # search phrase
-        title = 'jack resume'
-        phrase_group_in_db = db.session.query(PhraseGroup).filter_by(title=title).first()
-        self.assertEqual(phrase_group_in_db.title, title)
+        title = 'programming'
+        cluster_in_db = db.session.query(Cluster).filter_by(title=title).first()
+        self.assertEqual(cluster_in_db.title, title)
 
-    def test_view_phrase_group_in_list(self):
-        # not authenticated
-        response = self.app.client.get('/documents', content_type='html/text')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('jack resume', str(response.data))
+#     def test_view_comparison_in_list(self):
+#         # not authenticated
+#         response = self.app.client.get('/comparisons', content_type='html/text')
+#         self.assertEqual(response.status_code, 200)
+#         self.assertIn('programming', str(response.data))
 
-    def test_create_phrase_group(self):
-        title = 'mary resume'
-        body = 'pilot'
-        username = 'mary'
-        password = 'marypassword'
-        self.create_phrase_group(title, body, username, password)
-        response = self.app.client.get('/documents', content_type='html/text')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('mary resume', str(response.data))
+#     def test_create_comparison(self):
+#         title = 'mary resume'
+#         body = 'pilot'
+#         username = 'mary'
+#         password = 'marypassword'
+#         self.create_document(title, body, username, password)
+#         response = self.app.client.get('/documents', content_type='html/text')
+#         self.assertEqual(response.status_code, 200)
+#         self.assertIn('mary resume', str(response.data))
 
-    def test_generate_phrase_group_slug(self):
+#     def test_generate_document_slug(self):
 
-        # create a new phrase_group with the same title
-        title = 'mary resume'
-        body = 'minister'
-        username = 'mary'
-        password = 'marypassword'
-        self.create_phrase_group(title, body, username, password)
-        response = self.app.client.get('/documents', content_type='html/text')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('mary resume', str(response.data))
+#         # create a new document with the same title
+#         title = 'mary resume'
+#         body = 'minister'
+#         username = 'mary'
+#         password = 'marypassword'
+#         self.create_document(title, body, username, password)
+#         response = self.app.client.get('/documents', content_type='html/text')
+#         self.assertEqual(response.status_code, 200)
+#         self.assertIn('mary resume', str(response.data))
         
-        # check if 2 phrase_groups in db
-        phrase_groups_in_db = db.session.query(PhraseGroup).filter_by(title=title).all()
-        self.assertEqual(len(phrase_groups_in_db), 2)
+#         # check if 2 documents in db
+#         documents_in_db = db.session.query(Document).filter_by(title=title).all()
+#         self.assertEqual(len(documents_in_db), 2)
 
-        # check that slugs are different
-        phrase_groups_in_db = db.session.query(PhraseGroup).filter_by(slug='mary-resume').all()
-        self.assertEqual(len(phrase_groups_in_db), 1)
+#         # check that slugs are different
+#         documents_in_db = db.session.query(Document).filter_by(slug='mary-resume').all()
+#         self.assertEqual(len(documents_in_db), 1)
 
-    def test_get_latest_finding_in_phrase_group_phrases(self):
-        # search phrase
-        phrase_group_in_db = PhraseGroup.query.filter_by(slug='mary-resume').first()
-        self.assertEqual(phrase_group_in_db.phrases[0].phrase.mean_salary, 95000)
+#     def test_get_latest_finding_in_document_phrases(self):
+#         # search phrase
+#         document_in_db = Document.query.filter_by(slug='mary-resume').first()
+#         self.assertEqual(document_in_db.phrases[0].phrase.mean_salary, 95000)
 
-    def test_analyze_phrase_group_phrases(self):
-        title = 'mary new resume'
-        body = 'A confident digital product manager, data scientist, MBA and entrepreneur, I deliver outcomes - not outputs.'
-        username = 'mary'
-        password = 'marypassword'
-        self.create_phrase_group(title, body, username, password)
-        response = self.app.client.get('/phrases', content_type='html/text')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('mba', str(response.data))
-        self.assertIn('data scientist', str(response.data))
+#     def test_analyze_document_phrases(self):
+#         title = 'mary new resume'
+#         body = 'A confident digital product manager, data scientist, MBA and entrepreneur, I deliver outcomes - not outputs.'
+#         username = 'mary'
+#         password = 'marypassword'
+#         self.create_document(title, body, username, password)
+#         response = self.app.client.get('/phrases', content_type='html/text')
+#         self.assertEqual(response.status_code, 200)
+#         self.assertIn('mba', str(response.data))
+#         self.assertIn('data scientist', str(response.data))
 
-    def test_get_user_phrase_group(self):
-        # search phrase
-        user_in_db = db.session.query(User).filter_by(username='jack').first()
-        phrase_group_in_db = db.session.query(PhraseGroup).filter_by(title='jack resume').first()
-        self.assertEqual(phrase_group_in_db.user_id, user_in_db.id)
+#     def test_get_user_document(self):
+#         # search phrase
+#         user_in_db = db.session.query(User).filter_by(username='jack').first()
+#         document_in_db = db.session.query(Document).filter_by(title='jack resume').first()
+#         self.assertEqual(document_in_db.user_id, user_in_db.id)
 
-    def test_view_user_phrase_groups(self):
-        # authenticated
-        self.login('mary','marypassword')
-        response = self.app.client.get('/users/mary/documents', content_type='html/text')
-        self.assertEqual(response.status_code, 200)
-        self.assertNotIn('jack resume', str(response.data))
-        self.assertIn('mary linkedin', str(response.data))
-        self.assertIn('mary resume', str(response.data))
+#     def test_view_user_documents(self):
+#         # authenticated
+#         self.login('mary','marypassword')
+#         response = self.app.client.get('/users/mary/documents', content_type='html/text')
+#         self.assertEqual(response.status_code, 200)
+#         self.assertNotIn('jack resume', str(response.data))
+#         self.assertIn('mary linkedin', str(response.data))
+#         self.assertIn('mary resume', str(response.data))
 
-    def test_create_user_phrase_group(self):
-        username = 'mary'
-        password = 'marypassword'
-        self.login(username, password)
-        response = self.app.client.get('/users/mary/documents', content_type='html/text')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('mary resume', str(response.data))
+#     def test_create_user_document(self):
+#         username = 'mary'
+#         password = 'marypassword'
+#         self.login(username, password)
+#         response = self.app.client.get('/users/mary/documents', content_type='html/text')
+#         self.assertEqual(response.status_code, 200)
+#         self.assertIn('mary resume', str(response.data))
 
-        title = 'mary cv'
-        body = 'mary new body'
-        self.create_phrase_group(title, body, username, password)
-        response = self.app.client.get('/users/mary/documents', content_type='html/text')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('mary cv', str(response.data))
+#         title = 'mary cv'
+#         body = 'mary new body'
+#         self.create_document(title, body, username, password)
+#         response = self.app.client.get('/users/mary/documents', content_type='html/text')
+#         self.assertEqual(response.status_code, 200)
+#         self.assertIn('mary cv', str(response.data))
 
-    def test_view_user_phrase_group(self):
-        # authenticated
-        self.login('mary','marypassword')
-        response = self.app.client.get('/documents/mary-resume', content_type='html/text')
-        self.assertEqual(response.status_code, 200)
-        self.assertNotIn('jack resume', str(response.data))
-        self.assertNotIn('mary linkedin', str(response.data))
-        self.assertIn('mary resume', str(response.data))
+#     def test_view_user_document(self):
+#         # authenticated
+#         self.login('mary','marypassword')
+#         response = self.app.client.get('/documents/mary-resume', content_type='html/text')
+#         self.assertEqual(response.status_code, 200)
+#         self.assertNotIn('jack resume', str(response.data))
+#         self.assertNotIn('mary linkedin', str(response.data))
+#         self.assertIn('mary resume', str(response.data))
 
-    # a different user can't see the phrase_group with the slug
-    # def test_view_user_phrase_group_authorized(self):
-    #     self.login('john','johnpassword')
-    #     response = self.app.client.get('/documents/mary-resume', content_type='html/text')
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertNotIn('mary resume', str(response.data))
+#     # a different user can't see the document with the slug
+#     # def test_view_user_document_authorized(self):
+#     #     self.login('john','johnpassword')
+#     #     response = self.app.client.get('/documents/mary-resume', content_type='html/text')
+#     #     self.assertEqual(response.status_code, 200)
+#     #     self.assertNotIn('mary resume', str(response.data))
 
-    #     response = self.app.client.get('/documents/mary-resume', content_type='html/text')
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertNotIn('mary resume', str(response.data))
+#     #     response = self.app.client.get('/documents/mary-resume', content_type='html/text')
+#     #     self.assertEqual(response.status_code, 200)
+#     #     self.assertNotIn('mary resume', str(response.data))
 
-    # the phrase_group shows the top 5 phrases by most recent finding value
+#     # the document shows the top 5 phrases by most recent finding value
 
-    # /api/documents/{slug}/phrases loaded in background
-    def test_view_phrase_group_phrases_in_api(self):
-        # check api
-        response = self.app.client.get('/api/documents/mary-resume/phrases', content_type='html/text')
-        # response = self.app.client.get('/api/documents/jack-resume/phrases', content_type='html/text')
-        self.assertEqual(response.status_code, 200)
-        self.assertNotIn('"jobsCount": null', str(response.data))
+#     # /api/documents/{slug}/phrases loaded in background
+#     def test_view_document_phrases_in_api(self):
+#         # check api
+#         response = self.app.client.get('/api/documents/mary-resume/phrases', content_type='html/text')
+#         # response = self.app.client.get('/api/documents/jack-resume/phrases', content_type='html/text')
+#         self.assertEqual(response.status_code, 200)
+#         self.assertNotIn('"jobsCount": null', str(response.data))
 
-        # engineer
-        self.assertIn('"phraseText": "engineer"', str(response.data))
+#         # engineer
+#         self.assertIn('"phraseText": "engineer"', str(response.data))
         
-        # not mechanical-engineer, that is in her linkedin profile
-        self.assertNotIn('"phraseText": "mechanical engineer"', str(response.data))
+#         # not mechanical-engineer, that is in her linkedin profile
+#         self.assertNotIn('"phraseText": "mechanical engineer"', str(response.data))
 
-        # not project manager, that is in jack's resume
-        self.assertNotIn('"phraseText": "project manager"', str(response.data))
+#         # not project manager, that is in jack's resume
+#         self.assertNotIn('"phraseText": "project manager"', str(response.data))
         
-        # only most recent finding for engineer
-        self.assertNotIn('"meanSalary": 85000', str(response.data))
-        self.assertIn('"meanSalary": 95000', str(response.data))
+#         # only most recent finding for engineer
+#         self.assertNotIn('"meanSalary": 85000', str(response.data))
+#         self.assertIn('"meanSalary": 95000', str(response.data))
 
 
 if __name__ == '__main__':

@@ -1,72 +1,21 @@
-{% extends 'bootstrap/base.html' %}
-
-{% block title %}
-{% if title %}{{ title }} - Job Words{% else %}{{ _('Welcome to Job Words') }}{% endif %}
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Resumopoly | {% block title %}{% endblock %}</title>
 
 {% block styles %}
-{{super()}}
+{{ bootstrap.load_css() }}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dc/3.0.6/dc.min.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Josefin+Sans" />
-
-    <style>
-
-
-/*.navbar-header {
-    float: left;
-    padding: 15px;
-    text-align: center;
-    width: 100%;
-}
-.navbar-brand {float:none;}*/
-
-/*.pulsor { display: inline-block; line-height: 50px; margin: 10px;
-width: 50px; height: 50px; border-radius: 50%;
-box-shadow: 0 0 1px #0099CC; background-color: #121212;
-text-shadow: 0 0 5px #0099CC; font-family: sans-serif; font-weight: bold; color: #0099CC; text-align: center;   
-cursor: pointer; 
-}*/
-.pulsor {
-    -webkit-animation: pulsate .8s infinite alternate;
-    -moz-animation: pulsate .8s infinite alternate;
-    -animation: pulsate .8s infinite alternate;
-}
-@-webkit-keyframes pulsate {
-    from { box-shadow: 0 0 8px #C70000; }
-    to { box-shadow: 0 0 20px #C70000; }
-}
-@-moz-keyframes pulsate {
-    from { box-shadow: 0 0 10px #121212; }
-    to { box-shadow: 0 0 20px #C70000; }
-}
-@keyframes pulsate {
-    from { box-shadow: 0 0 10px #121212; }
-    to { box-shadow: 0 0 20px #C70000; }
-}
-
-.svg-container {
-    display: inline-block;
-    position: relative;
-    width: 100%;
-    vertical-align: top;
-    overflow: hidden;
-}
-
-    </style>
+    <link rel="stylesheet" href="/static/css/custom.css" />
 {% endblock %}
 
-{% block scripts %}
-{{super()}}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.5.0/d3.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dc/3.0.6/dc.min.js"></script>
-{% endblock %}
-
+</head>
+<body>
 {% block navbar %}
-
 <header>
-      <div class="collapse" id="navbarHeader" style="background: #333;">
+      <div class="collapse" id="navbarHeader">
         <div class="container">
           <div class="row">
             <div class="col-sm-8 col-md-7 py-4">
@@ -112,6 +61,7 @@ cursor: pointer;
       </nav>
     </header>
 
+{% endblock %}
 
 <!-- <nav class="navbar navbar-default">
     <div class="container">
@@ -158,6 +108,9 @@ cursor: pointer;
     </div>
 </nav> -->
 
+{% block content %}
+<div class="container">
+
 {% with messages = get_flashed_messages(with_categories=true) %}
 {% if messages %}
 {% for category, message in messages %}
@@ -171,11 +124,17 @@ cursor: pointer;
 {% endif %}
 {% endwith %}
 
-{% endblock %}
+{% block app_content %}{% endblock %}
 
-
-{% block content %}
-<div class="container">
-    {% block app_content %}{% endblock %}
 </div>
 {% endblock %}
+
+{% block scripts %}
+{{ bootstrap.load_js() }}
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.5.0/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dc/3.0.6/dc.min.js"></script>
+{% endblock %}
+</body>
+</html>

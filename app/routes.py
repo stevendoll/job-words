@@ -4,7 +4,7 @@ import re
 import json
 from app import app, db
 from app.forms import LoginForm, SignupForm, DocumentForm
-from app.models import User, Role, Phrase, UserPhrase, Finding, PhraseGroup
+from app.models import User, Role, Phrase, PhraseAssociation, Finding, Document
 
 # check user authorization
 def roles_accepted(*roles):
@@ -210,13 +210,13 @@ def document_list():
     if form.validate_on_submit():
 
         if current_user.is_authenticated:
-            PhraseGroup.add_document(
+            Document.add_document(
                 title=form.title.data, body=form.body.data, user=current_user
             )
         else:
             flash("Please register or login to analyze documents.")
 
-    documents = PhraseGroup.get_all()
+    documents = Document.get_all()
 
     return render_template(
         "document-list.html", title="All documents", documents=documents
@@ -234,7 +234,7 @@ def create_document():
 @login_required
 def user_document_list(username):
 
-    documents = User.get_by_username(username).phrase_groups
+    documents = User.get_by_username(username).documents
 
     return render_template(
         "user-document-list.html", title="User Documents", documents=documents
@@ -245,15 +245,15 @@ def user_document_list(username):
 @login_required
 def document(slug):
 
-    phrase_group = PhraseGroup.get_by_slug(slug=slug)
+    document = Document.get_by_slug(slug=slug)
 
-    phrases = PhraseGroup.get_phrases(phrase_group=phrase_group)
+    phrases = Document.get_phrases(document=document)
 
     return render_template(
         "user-document.html",
         title="Document Analysis",
         phrases=phrases,
-        document=phrase_group,
+        document=document,
     )
 
 
@@ -278,9 +278,9 @@ def phrase_list_api():
 @app.route("/api/documents/<slug>/phrases")
 def document_phrase_list_api(slug):
 
-    phrase_group = PhraseGroup.get_by_slug(slug=slug)
+    document = Document.get_by_slug(slug=slug)
 
-    phrases = PhraseGroup.get_phrases(phrase_group=phrase_group)
+    phrases = Document.get_phrases(document=document)
 
     result = {}
     phrase_list = []

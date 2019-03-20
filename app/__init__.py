@@ -1,8 +1,7 @@
-from flask import Flask
 from flask_bootstrap import Bootstrap
+from flask import Flask
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 
 import logging
 from logging.handlers import RotatingFileHandler
@@ -12,10 +11,9 @@ from config import Config
 
 
 app = Flask(__name__)
+bootstrap = Bootstrap(app)
 app.config.from_object(Config)
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)
-Bootstrap(app)
 login = LoginManager(app)
 login.login_view = "login"
 
@@ -37,7 +35,7 @@ login.login_view = "login"
 
 app.logger.setLevel(logging.INFO)
 app.logger.info("App startup")
-# app.logger.info(app.config['SQLALCHEMY_DATABASE_URI'])
+app.logger.info(app.config['SQLALCHEMY_DATABASE_URI'])
 
 
 from app import routes, models

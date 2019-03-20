@@ -6,7 +6,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 import datetime as dt
 import re
 
-from app.models import UserPhrase, Finding
+from app.models import PhraseAssociation, Finding
 
 PHRASE_MINIMUM_JOBS = 100
 
@@ -17,7 +17,7 @@ class Phrase(db.Model):
     slug = db.Column(db.String(256), index=True, unique=True, nullable=False)
     search_count = db.Column(db.Integer, default=1)
     findings = db.relationship("Finding")
-    user_phrases = db.relationship("UserPhrase")
+    phrase_associations = db.relationship("PhraseAssociation")
     created_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_date = db.Column(db.DateTime(timezone=True), onupdate=func.now())
 
@@ -77,8 +77,6 @@ class Phrase(db.Model):
 
     def serialize(self):
         result = {}
-        result["phrase_groupTitle"] = None
-        result["username"] = None
         result["phraseText"] = self.phrase_text
         result["searchCount"] = self.search_count
         result["createdDate"] = (
@@ -124,8 +122,8 @@ class Phrase(db.Model):
     @staticmethod
     def get_by_user(user):
         return (
-            Phrase.query.join(UserPhrase)
-            .filter(UserPhrase.user == user)
+            Phrase.query.join(PhraseAssociation)
+            .filter(PhraseAssociation.user == user)
             .filter(Phrase.jobs_count > PHRASE_MINIMUM_JOBS)
             .order_by(desc(Phrase.mean_salary))
         )
@@ -139,7 +137,7 @@ class Phrase(db.Model):
         )
 
     @staticmethod
-    def add(phrase_text, user=None, phrase_group=None):
+    def add(phrase_text, user=None, document=None):
 
         regex_remove_special = (
             r"[^\w\.\s\-]"
@@ -190,16 +188,16 @@ class Phrase(db.Model):
                 phrase = Phrase(phrase_text=phrase_text, slug=slug)
                 db.session.add(phrase)
 
-            if user or phrase_group:
-                user_phrase = UserPhrase(phrase=phrase, user=user, phrase_group=phrase_group)
-                db.session.add(user_phrase)
+            if user or document:
+                phrase_association = PhraseAssociation(phrase=phrase, user=user, document=document)
+                db.session.add(phrase_association)
 
             db.session.commit()
 
         return phrase
 
     @staticmethod
-    def add_multiple(phrase_texts, user=None, phrase_group=None):
+    def add_multiple(phrase_texts, user=None, document=None):
 
         for phrase_text in phrase_texts:
 
@@ -207,15 +205,15 @@ class Phrase(db.Model):
             app.logger.info(flash_message)
 
             # add phrase
-            phrase = Phrase.add(phrase_text, user, phrase_group)
+            phrase = Phrase.add(phrase_text, user, document)
 
             # analyze
             Finding.analyze(phrase)
 
     @staticmethod
-    def lookup(phrase_text, user=None, phrase_group=None):
+    def lookup(phrase_text, user=None, document=None):
 
-        phrase = Phrase.add(phrase_text, user=user, phrase_group=phrase_group)
+        phrase = Phrase.add(phrase_text, user=user, document=document)
 
         # scrape indeed and analyze
         Finding.analyze(phrase)

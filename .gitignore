@@ -6,6 +6,7 @@ __pycache__/
 .DS_Store
 .aws_credentials
 .devsetup
+2019-03-20-requirements.txt
 test.db
 zappa_settings.json
 app.db

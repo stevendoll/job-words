@@ -1,0 +1,29 @@
+.pulsor {
+    -webkit-animation: pulsate .8s infinite alternate;
+    -moz-animation: pulsate .8s infinite alternate;
+    -animation: pulsate .8s infinite alternate;
+}
+@-webkit-keyframes pulsate {
+    from { box-shadow: 0 0 8px #C70000; }
+    to { box-shadow: 0 0 20px #C70000; }
+}
+@-moz-keyframes pulsate {
+    from { box-shadow: 0 0 10px #121212; }
+    to { box-shadow: 0 0 20px #C70000; }
+}
+@keyframes pulsate {
+    from { box-shadow: 0 0 10px #121212; }
+    to { box-shadow: 0 0 20px #C70000; }
+}
+
+#navbarHeader {
+    background: #333;
+}
+
+.svg-container {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    vertical-align: top;
+    overflow: hidden;
+}
