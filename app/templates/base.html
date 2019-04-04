@@ -57,8 +57,8 @@
                 {% if current_user.is_anonymous %}
                 {% else %}
                 <li><a href="{{ url_for('phrase_list') }}">Phrases</a></li>
-                <li><a href="{{ url_for('user_phrase_list', username=current_user.username) }}">My Phrases</a></li>
-                <li><a href="{{ url_for('user_document_list', username=current_user.username) }}">My Documents</a></li>
+                <li><a href="{{ url_for('user_phrase_list', email=current_user.email) }}">My Phrases</a></li>
+                <li><a href="{{ url_for('user_document_list', email=current_user.email) }}">My Documents</a></li>
                 <li><a href="{{ url_for('user_list') }}">Users</a></li>
                 <li><a href="{{ url_for('document_list') }}">Documents</a></li>  
                 <li><a href="{{ url_for('create_document') }}">New Document</a></li>                
@@ -92,8 +92,8 @@
                 <li><a href="{{ url_for('about') }}">I</a></li>
                 {% else %}
                 <li><a href="{{ url_for('phrase_list') }}">Phrases</a></li>
-                <li><a href="{{ url_for('user_phrase_list', username=current_user.username) }}">My Phrases</a></li>
-                <li><a href="{{ url_for('user_document_list', username=current_user.username) }}">My Documents</a></li>
+                <li><a href="{{ url_for('user_phrase_list', email=current_user.email) }}">My Phrases</a></li>
+                <li><a href="{{ url_for('user_document_list', email=current_user.email) }}">My Documents</a></li>
                 <li><a href="{{ url_for('user_list') }}">Users</a></li>
                 <li><a href="{{ url_for('document_list') }}">Documents</a></li>  
                 <li><a href="{{ url_for('create_document') }}">New Document</a></li>                

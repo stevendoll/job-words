@@ -50,10 +50,10 @@ class UserCase(unittest.TestCase):
             db.create_all()
 
         # registered user
-        u1 = User(username='john', email='john@example.com')
+        u1 = User(email='john@example.com')
         u1.set_password('johnpassword')
 
-        u2 = User(username='susan', email='susan@example.com')
+        u2 = User(email='susan@example.com')
         db.session.add(u1)
         db.session.add(u2)
         db.session.commit()
@@ -62,67 +62,66 @@ class UserCase(unittest.TestCase):
         db.session.remove()
         db.drop_all()
 
-    def login(self, username, password):
+    def login(self, email, password):
         return self.app.client.post('/login', data=dict(
-            username=username,
+            email=email,
             password=password
         ), follow_redirects=True)
 
     def logout(self):
         return self.app.client.get('/logout', follow_redirects=True)
 
-    def register(self, username, email, password, password2):
+    def register(self, email, password, password2):
         return self.app.client.post('/signup', data=dict(
-            username=username,
             email=email,
             password=password,
             password2=password2,
         ), follow_redirects=True)
 
     def test_get_user(self):
-        username = 'john'
-        user_in_db = db.session.query(User).filter_by(username=username).first()
+        email = 'john@example.com'
+        user_in_db = db.session.query(User).filter_by(email=email).first()
         self.assertEqual(user_in_db.email, 'john@example.com')
 
     def test_password_hashing(self):
-        u = User(username='susan')
+        u = User(email='susan@example.com')
         u.set_password('cat')
         self.assertFalse(u.check_password('dog'))
         self.assertTrue(u.check_password('cat'))
 
     def test_login_logout(self):
  
-        response = self.login('john','johnpassword')
+        response = self.login('john@example.com','johnpassword')
         self.assertIn('Logout', str(response.data))
-        self.assertIn('Welcome back john', str(response.data))
+        self.assertIn('Welcome back john@example.com', str(response.data))
 
         response = self.logout()
         self.assertIn('Goodbye', str(response.data)) 
         self.assertIn('Login', str(response.data))
-        self.assertNotIn('Welcome back john', str(response.data))
+        self.assertNotIn('Welcome back john@example.com', str(response.data))
 
-        response = self.login('john','notpassword')
-        self.assertIn('Invalid username or password', str(response.data))
+        response = self.login('john@example.com','notpassword')
+        self.assertIn('Invalid email or password', str(response.data))
 
         self.logout()
-        response = self.login('susan','johnpassword')
-        self.assertIn('Invalid username or password', str(response.data))
+        response = self.login('susan@example.com','johnpassword')
+        self.assertIn('Invalid email or password', str(response.data))
 
 
     def test_register(self):
  
         # add to db if doesn't exist, convert to lowercase
-        result = self.register('anneusername', 'anne@example.com', 'annpassword', 'annpassword')
+        result = self.register('anne@example.com', 'annpassword', 'annpassword')
         self.assertIn('Congratulations, you are now a registered user!', str(result.data))        
 
-        result = self.login('anneusername','annpassword')
+        result = self.login('anne@example.com','annpassword')
         self.assertIn('Logout', str(result.data))        
-        self.assertIn('Welcome back anneusername', str(result.data))
+        self.assertIn('Welcome back anne@example.com', str(result.data))
         self.logout()
 
         # redirect to login if already registered
-        result = self.register('john', 'john@example.com', 'johnpassword', 'johnpassword')
-        self.assertIn('Have you already registered? Otherwise please use a different username.', str(result.data))        
+        result = self.register('john@example.com', 'johnpassword', 'johnpassword')
+        self.assertIn('Have you already registered?', str(result.data))        
 
     def test_user_list_protected(self):
         response = self.app.client.get('/users', content_type='teml/text')
@@ -131,15 +130,15 @@ class UserCase(unittest.TestCase):
         self.assertIn('You should be redirected automatically to target URL: <a href="/login?next=%2Fusers">/login?next=%2Fusers</a>', str(response.data))
 
     def test_user_list(self):
-        self.login('john','johnpassword')
+        self.login('john@example.com','johnpassword')
         response = self.app.client.get('/users',follow_redirects=True)
         
-        self.assertIn('john', str(response.data))
+        self.assertIn('john@example.com', str(response.data))
         self.assertIn('susan@example.com', str(response.data))
 
 
     def test_avatar(self):
-        u = User(username='john', email='john@example.com')
+        u = User(email='john@example.com')
         self.assertEqual(u.avatar(128), ('https://www.gravatar.com/avatar/'
                                          'd4c74594d841139328695756648b6bd6'
                                          '?d=blank&s=128'))
@@ -166,15 +165,15 @@ class RoleCase(unittest.TestCase):
         db.session.add_all([r1, r2, r3, r4])
 
         # registered user
-        u1 = User(username='patricia', email='patricia@example.com')
+        u1 = User(email='patricia@example.com')
         u1.set_password('patriciapassword')
         u1.roles.append(r1)
         u1.roles.append(r2)
 
-        u2 = User(username='felicia', email='felicia@example.com')
+        u2 = User(email='felicia@example.com')
         u2.set_password('feliciapassword')
 
-        u3 = User(username='denise', email='denise@example.com')
+        u3 = User(email='denise@example.com')
 
         db.session.add_all([u1, u2, u3])
 
@@ -191,7 +190,7 @@ class RoleCase(unittest.TestCase):
 
     # can get roles
     def test_get_roles(self):
-        user_with_roles = User.get_by_username('patricia')
+        user_with_roles = User.get_by_email('patricia@example.com')
         
         roles = user_with_roles.get_roles()
 
@@ -201,7 +200,7 @@ class RoleCase(unittest.TestCase):
 
     # can check if user has role
     def test_has_role(self):
-        admin_user = User.get_by_username('patricia')
+        admin_user = User.get_by_email('patricia@example.com')
         self.assertTrue(admin_user.has_role('Pawn'))
         self.assertTrue(admin_user.has_role('Rook'))
         self.assertFalse(admin_user.has_role('Knight'))
@@ -211,7 +210,7 @@ class RoleCase(unittest.TestCase):
 
     # can add role
     def test_add_role(self):
-        user = User.get_by_username('patricia')
+        user = User.get_by_email('patricia@example.com')
         self.assertFalse(user.has_role('Knight'))
 
         user.add_role('Knight')
@@ -219,14 +218,14 @@ class RoleCase(unittest.TestCase):
 
     # add role that doesn't exist raises exception
     def test_add_role_not_found(self):
-        user = User.get_by_username('patricia')
+        user = User.get_by_email('patricia@example.com')
         self.assertFalse(user.has_role('Joker'))
 
         self.assertRaises(Exception, user.add_role, 'Joker')
 
     # can remove role
     def test_remove_role(self):
-        user = User.get_by_username('patricia')
+        user = User.get_by_email('patricia@example.com')
         self.assertTrue(user.has_role('Rook'))
 
         user.remove_role('Rook')
@@ -235,7 +234,7 @@ class RoleCase(unittest.TestCase):
 
     # remove role that doesn't exist raises exception
     def test_remove_role_not_found(self):
-        user = User.get_by_username('patricia')
+        user = User.get_by_email('patricia@example.com')
         self.assertFalse(user.has_role('Joker'))
 
         self.assertRaises(Exception, user.remove_role, 'Joker')
@@ -246,17 +245,17 @@ class RoleCase(unittest.TestCase):
         result = self.app.client.get('/')
         self.assertEqual(result.status_code, 200)
 
-        user = User.get_by_username('denise')
+        user = User.get_by_email('denise@example.com')
         self.assertEqual(user.get_roles(), None)
 
     # registered user has User role
     def test_registered_user_has_no_role(self):
 
         # looks up user if doesn't exist
-        result = UserCase.register(self, 'anne','anne@example.com','annepassword','annepassword')
+        result = UserCase.register(self, 'anne@example.com','annepassword','annepassword')
         self.assertIn('Congratulations, you are now a registered user!', str(result.data))        
 
-        user = User.get_by_username('anne')
+        user = User.get_by_email('anne@example.com')
         self.assertEqual(user.get_roles(), None)
         self.assertFalse(user.has_role('User'))
         self.assertFalse(user.has_role('Admin'))
@@ -538,7 +537,7 @@ class InitializeCase(unittest.TestCase):
             db.create_all()
 
         # admin user
-        u1 = User(username='stevendoll', email='steven@example.com')
+        u1 = User(email='steven@dolltribe.com')
         u1.set_password('stevenpassword')
         db.session.add(u1)
         db.session.commit()
@@ -554,7 +553,7 @@ class InitializeCase(unittest.TestCase):
         self.assertEqual(result.status_code, 200) # redirect to api list
         self.assertIn('Dashboard initialized', str(result.data))        
 
-        user = User.get_by_username('stevendoll')
+        user = User.get_by_email('steven@dolltribe.com')
         self.assertTrue(user.has_role('Admin'))
 
     def test_setup_only_runs_once(self):
@@ -576,8 +575,8 @@ class PhraseCase(unittest.TestCase):
     def tearDown(self):
         UserCase.tearDown(self)
 
-    def login(self, username, password):
-        return UserCase.login(self, username, password)
+    def login(self, email, password):
+        return UserCase.login(self, email, password)
 
     def logout(self):
         return UserCase.logout(self)
@@ -692,8 +691,8 @@ class UserPhraseCase(unittest.TestCase):
         UserCase.setUp(self)
 
         # create users
-        u1 = User(username='jack', email='jack@example.com')
-        u2 = User(username='mary', email='mary@example.com')
+        u1 = User(email='jack@example.com')
+        u2 = User(email='mary@example.com')
         u2.set_password('marypassword')
         db.session.add_all([u1, u2])
 
@@ -715,23 +714,23 @@ class UserPhraseCase(unittest.TestCase):
     def tearDown(self):
         UserCase.tearDown(self)
 
-    def login(self, username, password):
-        return UserCase.login(self, username, password)
+    def login(self, email, password):
+        return UserCase.login(self, email, password)
 
     def logout(self):
         return UserCase.logout(self)
 
     def test_get_user_phrase(self):
         # search phrase
-        user_in_db = db.session.query(User).filter_by(username='jack').first()
+        user_in_db = db.session.query(User).filter_by(email='jack@example.com').first()
         phrase_in_db = db.session.query(Phrase).filter_by(phrase_text='engineer').first()
         user_phrase_in_db = db.session.query(UserPhrase).filter_by(phrase_id=phrase_in_db.id, user_id=user_in_db.id).first()
         self.assertEqual(user_phrase_in_db.user_id, user_in_db.id)
 
     def test_view_user_phrase(self):
         # authenticated
-        self.login('mary','marypassword')
-        response = self.app.client.get('/users/mary/phrases', content_type='html/text')
+        self.login('mary@example.com','marypassword')
+        response = self.app.client.get('/users/mary@example.com/phrases', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertNotIn('project manager', str(response.data))
         self.assertIn('engineer', str(response.data))
@@ -744,7 +743,7 @@ class UserPhraseCase(unittest.TestCase):
         self.assertIn('You should be redirected automatically to target URL: <a href="/login?next=%2Fusers">/login?next=%2Fusers</a>', str(response.data))
 
         # authenticated
-        self.login('john','johnpassword')
+        self.login('john@example.com','johnpassword')
         response = self.app.client.get('/users',follow_redirects=True)
         
         self.assertIn('john', str(response.data))
@@ -757,7 +756,7 @@ class UserPhraseCase(unittest.TestCase):
         self.assertIn('New search phrase!', str(response.data))
         self.assertIn(term, str(response.data))
 
-        response = self.app.client.get('/users/john/phrases', content_type='html/text')
+        response = self.app.client.get('/users/john@example.com/phrases', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn(term, str(response.data))
 
@@ -786,8 +785,8 @@ class FindingCase(unittest.TestCase):
     def tearDown(self):
         UserCase.tearDown(self)
 
-    def login(self, username, password):
-        return UserCase.login(self, username, password)
+    def login(self, email, password):
+        return UserCase.login(self, email, password)
 
     def logout(self):
         return UserCase.logout(self)
@@ -895,8 +894,8 @@ class DocumentCase(unittest.TestCase):
         UserCase.setUp(self)
 
         # create users
-        u1 = User(username='jack', email='jack@example.com')
-        u2 = User(username='mary', email='mary@example.com')
+        u1 = User(email='jack@example.com')
+        u2 = User(email='mary@example.com')
         u2.set_password('marypassword')
         db.session.add_all([u1, u2])
 
@@ -935,14 +934,14 @@ class DocumentCase(unittest.TestCase):
     def tearDown(self):
         UserCase.tearDown(self)
 
-    def login(self, username, password):
-        return UserCase.login(self, username, password)
+    def login(self, email, password):
+        return UserCase.login(self, email, password)
 
     def logout(self):
         return UserCase.logout(self)
 
-    def create_document(self, title, body, username, password):
-        self.login(username, password)
+    def create_document(self, title, body, email, password):
+        self.login(email, password)
 
         return self.app.client.post('/documents', data=dict(
             title=title,
@@ -964,9 +963,9 @@ class DocumentCase(unittest.TestCase):
     def test_create_document(self):
         title = 'mary resume'
         body = 'pilot'
-        username = 'mary'
+        email = 'mary@example.com'
         password = 'marypassword'
-        self.create_document(title, body, username, password)
+        self.create_document(title, body, email, password)
         response = self.app.client.get('/documents', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn('mary resume', str(response.data))
@@ -976,9 +975,9 @@ class DocumentCase(unittest.TestCase):
         # create a new document with the same title
         title = 'mary resume'
         body = 'minister'
-        username = 'mary'
+        email = 'mary@example.com'
         password = 'marypassword'
-        self.create_document(title, body, username, password)
+        self.create_document(title, body, email, password)
         response = self.app.client.get('/documents', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn('mary resume', str(response.data))
@@ -999,9 +998,9 @@ class DocumentCase(unittest.TestCase):
     def test_analyze_document_phrases(self):
         title = 'mary new resume'
         body = 'A confident digital product manager, data scientist, MBA and entrepreneur, I deliver outcomes - not outputs.'
-        username = 'mary'
+        email = 'mary@example.com'
         password = 'marypassword'
-        self.create_document(title, body, username, password)
+        self.create_document(title, body, email, password)
         response = self.app.client.get('/phrases', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn('mba', str(response.data))
@@ -1009,37 +1008,37 @@ class DocumentCase(unittest.TestCase):
 
     def test_get_user_document(self):
         # search phrase
-        user_in_db = db.session.query(User).filter_by(username='jack').first()
+        user_in_db = db.session.query(User).filter_by(email='jack@example.com').first()
         document_in_db = db.session.query(Document).filter_by(title='jack resume').first()
         self.assertEqual(document_in_db.user_id, user_in_db.id)
 
     def test_view_user_documents(self):
         # authenticated
-        self.login('mary','marypassword')
-        response = self.app.client.get('/users/mary/documents', content_type='html/text')
+        self.login('mary@example.com','marypassword')
+        response = self.app.client.get('/users/mary@example.com/documents', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertNotIn('jack resume', str(response.data))
         self.assertIn('mary linkedin', str(response.data))
         self.assertIn('mary resume', str(response.data))
 
     def test_create_user_document(self):
-        username = 'mary'
+        email = 'mary@example.com'
         password = 'marypassword'
-        self.login(username, password)
-        response = self.app.client.get('/users/mary/documents', content_type='html/text')
+        self.login(email, password)
+        response = self.app.client.get('/users/mary@example.com/documents', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn('mary resume', str(response.data))
 
         title = 'mary cv'
         body = 'mary new body'
-        self.create_document(title, body, username, password)
-        response = self.app.client.get('/users/mary/documents', content_type='html/text')
+        self.create_document(title, body, email, password)
+        response = self.app.client.get('/users/mary@example.com/documents', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertIn('mary cv', str(response.data))
 
     def test_view_user_document(self):
         # authenticated
-        self.login('mary','marypassword')
+        self.login('mary@example.com','marypassword')
         response = self.app.client.get('/documents/mary-resume', content_type='html/text')
         self.assertEqual(response.status_code, 200)
         self.assertNotIn('jack resume', str(response.data))

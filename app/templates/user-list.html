@@ -10,8 +10,7 @@
 
         <tr>
         	<td><img src="{{ this_user.avatar(64) }}"></td>
-        	<td><a href="{{ url_for('user_phrase_list', username=this_user.username) }}">{{ this_user.username }}</a></td>
-        	<td>{{ this_user.email }}</td>
+        	<td><a href="{{ url_for('user_phrase_list', email=this_user.email) }}">{{ this_user.email }}</a></td>
         </tr>
         {% endfor %}
 

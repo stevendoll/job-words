@@ -5,14 +5,13 @@ from app.models import User
 
 
 class LoginForm(FlaskForm):
-    username = StringField("Username", validators=[DataRequired()])
+    email = StringField("Email", validators=[DataRequired(), Email()])
     password = PasswordField("Password", validators=[DataRequired()])
     remember_me = BooleanField("Remember Me")
     submit = SubmitField("Sign In")
 
 
 class SignupForm(FlaskForm):
-    username = StringField("Username", validators=[DataRequired()])
     email = StringField("Email", validators=[DataRequired(), Email()])
     password = PasswordField("Password", validators=[DataRequired()])
     password2 = PasswordField(
@@ -20,15 +19,10 @@ class SignupForm(FlaskForm):
     )
     submit = SubmitField("Register")
 
-    def validate_username(self, username):
-        user = User.query.filter_by(username=username.data).first()
-        if user is not None:
-            raise ValidationError("Have you already registered? Otherwise please use a different username.")
-
     def validate_email(self, email):
         user = User.query.filter_by(email=email.data).first()
         if user is not None:
-            raise ValidationError("Please use a different email address.")
+            raise ValidationError("Have you already registered? This email is already in Resumopoly.")
 
 
 class DocumentForm(FlaskForm):

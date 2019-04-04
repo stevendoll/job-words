@@ -41,14 +41,14 @@ def setup():
         db.session.commit()
 
         # add admins
-        for username in admin_users:
+        for email in admin_users:
 
-            user = User.get_by_username(username)
+            user = User.get_by_email(email)
             if user:
                 user.add_role("Admin")
-                app.logger.info("Granted Admin role: %s", user.username)
+                app.logger.info("Granted Admin role: %s", user.email)
             else:
-                app.logger.warning("Unable to grant Admin role: %s", username)
+                app.logger.warning("Unable to grant Admin role: %s", email)
 
         flash("Dashboard initialized", "success")
     else:
@@ -95,16 +95,16 @@ def login():
         return redirect(url_for("index"))
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
+        user = User.query.filter_by(email=form.email.data).first()
         if (
             user is None
             or user.password_hash is None
             or not user.check_password(form.password.data)
         ):
-            flash("Invalid username or password")
+            flash("Invalid email or password")
             return redirect(url_for("login"))
         login_user(user, remember=form.remember_me.data)
-        flash("Welcome back " + user.username)
+        flash("Welcome back " + user.email)
         return redirect(url_for("index"))
     return render_template("login.html", title="Sign In", form=form)
 
@@ -122,7 +122,7 @@ def signup():
         return redirect(url_for("index"))
     form = SignupForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)
+        user = User(email=form.email.data)
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
@@ -175,7 +175,7 @@ def phrase_list():
     if current_user.is_anonymous:
         my_phrases = None
     else:
-        my_phrases = User.get_by_username(current_user.username).phrases
+        my_phrases = User.get_by_email(current_user.email).phrases
 
     return render_template(
         "phrase-list.html",
@@ -204,11 +204,11 @@ def phrase_view(phrase_slug):
     return render_template("phrase.html", title="phrase.phrase_text", phrase=phrase)
 
 
-@app.route("/users/<username>/phrases")
+@app.route("/users/<email>/phrases")
 @login_required
-def user_phrase_list(username):
+def user_phrase_list(email):
 
-    phrases = User.get_by_username(username).phrases
+    phrases = User.get_by_email(email).phrases
 
     return render_template(
         "user-phrase-list.html", title="User Phrases", phrases=phrases
@@ -242,11 +242,11 @@ def create_document():
     return render_template("document-form.html", title="Create document", form=form)
 
 
-@app.route("/users/<username>/documents")
+@app.route("/users/<email>/documents")
 @login_required
-def user_document_list(username):
+def user_document_list(email):
 
-    documents = User.get_by_username(username).documents
+    documents = User.get_by_email(email).documents
 
     return render_template(
         "user-document-list.html", title="User Documents", documents=documents
