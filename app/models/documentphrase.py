@@ -3,24 +3,18 @@ from sqlalchemy.sql import func
 import datetime as dt
 
 
-class PhraseAssociation(db.Model):
+class DocumentPhrase(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     phrase_id = db.Column(db.Integer, db.ForeignKey("phrase.id"), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    phraseset_id = db.Column(db.Integer, db.ForeignKey("phraseset.id"))
+    document_id = db.Column(db.Integer, db.ForeignKey("document.id"), nullable=False)
     created_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     phrase = db.relationship("Phrase")
-    user = db.relationship("User")
-    phraseset = db.relationship("PhraseSet")
     document = db.relationship("Document")
-    cluster = db.relationship("Cluster")
-    comparison = db.relationship("Comparison")
 
     def serialize(self):
         result = {}
         result["documentTitle"] = self.document.title if self.document else None
-        result["username"] = self.user.username if self.user else None
         result["phraseText"] = self.phrase.phrase_text
         result["searchCount"] = self.phrase.search_count
         result["createdDate"] = (
@@ -53,8 +47,8 @@ class PhraseAssociation(db.Model):
         return result
 
     def __repr__(self):
-        return "<PhraseAssociation {}>".format(self.phrase)
+        return "<DocumentPhrase {}>".format(self.phrase)
 
     @staticmethod
     def get_all():
-        return PhraseAssociation.query.all()
+        return DocumentPhrase.query.all()

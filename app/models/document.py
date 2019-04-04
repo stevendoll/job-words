@@ -6,47 +6,35 @@ from sqlalchemy.orm import column_property
 import re
 import uuid
 from app import app, db
-from app.models import PhraseAssociation, Phrase
+from app.models import DocumentPhrase, Phrase
 
 PHRASE_MINIMUM_JOBS = 100
 
 
-class PhraseSet(db.Model):
-    __tablename__ = 'phraseset'
+class Document(db.Model):
+    __tablename__ = "document"
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.Text(), nullable=False)
     slug = db.Column(db.String(64), index=True, unique=True, nullable=False)
-    type = db.Column(db.Text(), nullable=False, default='document')
     body = db.Column(db.Text())
-    phrases = db.relationship("PhraseAssociation")
+    phrases = db.relationship("DocumentPhrase")
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     user = db.relationship("User")
     created_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_date = db.Column(db.DateTime(timezone=True), onupdate=func.now())
 
-    __mapper_args__ = {
-        'polymorphic_on':type,
-        'polymorphic_identity':'phraseset'
-    }
+    def __repr__(self):
+        return "<Document {}>".format(self.title)
 
     @staticmethod
-    def get_phrases(phraseset):
+    def get_phrases(document):
         return (
-            Phrase.query.join(PhraseAssociation)
-            .filter(PhraseAssociation.phraseset == phraseset)
+            Phrase.query.join(DocumentPhrase)
+            .filter(DocumentPhrase.document == document)
             .filter(Phrase.jobs_count > PHRASE_MINIMUM_JOBS)
             .order_by(desc(Phrase.mean_salary))
             .all()
         )
-
-class Document(PhraseSet):
-
-    __mapper_args__ = {
-        'polymorphic_identity':'document'
-    }
-
-    def __repr__(self):
-        return "<Document {}>".format(self.title)
 
     @staticmethod
     def get_all():
@@ -55,8 +43,8 @@ class Document(PhraseSet):
     # @staticmethod
     # def get_phrases(document):
     #     return (
-    #         Phrase.query.join(PhraseAssociation)
-    #         .filter(PhraseAssociation.document == document)
+    #         Phrase.query.join(DocumentPhrase)
+    #         .filter(DocumentPhrase.document == document)
     #         .filter(Phrase.jobs_count > PHRASE_MINIMUM_JOBS)
     #         .order_by(desc(Phrase.mean_salary))
     #         .all()
@@ -92,21 +80,3 @@ class Document(PhraseSet):
             document_in_db = Document.query.filter_by(slug=slug).first()
 
         return document_in_db
-
-class Cluster(PhraseSet):
-
-    __mapper_args__ = {
-        'polymorphic_identity':'cluster'
-    }
-
-    def __repr__(self):
-        return "<Cluster {}>".format(self.title)
-
-class Comparison(PhraseSet):
-
-    __mapper_args__ = {
-        'polymorphic_identity':'comparison'
-    }
-
-    def __repr__(self):
-        return "<Comparison {}>".format(self.title)

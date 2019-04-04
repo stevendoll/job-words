@@ -4,7 +4,7 @@ import re
 import json
 from app import app, db
 from app.forms import LoginForm, SignupForm, DocumentForm
-from app.models import User, Role, Phrase, PhraseAssociation, Finding, Document
+from app.models import User, Role, Phrase, DocumentPhrase, Finding, Document, UserPhrase
 
 # check user authorization
 def roles_accepted(*roles):
@@ -84,6 +84,11 @@ def about():
     return render_template("about.html", title="About")
 
 
+@app.route("/test")
+def test():
+    return render_template("test.html", title="About")
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
@@ -140,12 +145,19 @@ def phrase_list():
 
     term = request.args.get("term", "")
 
-    regex = r"[^\w\.\s\-]"
+    regex = r"[^\w\.\s\-\,]"
     term = re.sub(regex, "", term.lower().strip())
 
     phrase = Phrase.get_last()
 
-    if len(term) > 0:
+    if term and "," in term:
+
+        if current_user.is_authenticated:
+            Comparison.add_comparison(term=term, user=current_user)
+        else:
+            Comparison.add_comparison(term=term)
+
+    elif term:
         if current_user.is_anonymous:
             phrase = Phrase.lookup(term)
         else:

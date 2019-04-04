@@ -3,7 +3,7 @@
 {% block scripts %}
 {{super()}}
 
-<script type="text/javascript">
+<script>
     var numberFormat = d3.format(".0f");
 
     var usChart = dc.geoChoroplethChart("#us-chart");
@@ -185,12 +185,11 @@ dc.renderAll();
 
 {% if phrase and phrase.findings %}
 
-<div class="jumbotron" style="text-align: center; margin-top: 10px;">
-
+<section class="jumbotron text-center" style="margin-top: 10px;">
 
     <div class="row">
         <div class="col-md-3 d-none d-lg-block">
-            <img src="static/images/uncle_moneybags.png">
+            <img src="/static/images/uncle_moneybags.png" alt="Resumopoly: job search word analysis">
         </div>
         <div class="col-md-9">
 
@@ -245,7 +244,7 @@ dc.renderAll();
 
     </div>
 
-</div><!-- end jombotron -->
+</section><!-- end jombotron -->
 
 {% endif %}
 
