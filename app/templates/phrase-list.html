@@ -202,39 +202,43 @@ dc.renderAll();
 
                     <form class="form-inline justify-content-center" method="get" action="{{ url_for('phrase_list') }}">
                         <div class="input-group pulsor">
-                            <input class="form-control border-secondary border-right-0 rounded-0" type="text" name="term" placeholder="Search phrase">
+                            <input class="form-control form-control-lg border-secondary border-right-0 rounded-0" type="text" name="term" placeholder="Search phrase">
                             <span class="input-group-append">
-                                <button class="btn btn-outline-secondary border-left-0 rounded-0 rounded-right" type="submit">
+                                <button class="btn btn-outline-secondary btn-large border-left-0 rounded-0 rounded-right" type="submit">
                                     <i class="fa fa-search"></i>
                                 </button>
                             </span>
                         </div>
                     </form>
 
-                    <p style="font-size: medium; padding: 10px 0px 10px 0px;"><a href="{{ url_for('create_document') }}">Scan your resume or Linkedin profile</a></p>
+                    <!-- <p style="font-size: medium; padding: 10px 0px 10px 0px;"><a href="{{ url_for('create_document') }}">Scan your resume or Linkedin profile</a></p> -->
 
 
                 </div>
 
                 <div class="col-md-6">
-                    <p>Sorry, Beta Invitations are full. <br/>Sign up for updates!</p>
+                    <h2 style="text-align: center; font-size: 20px">Sign up for a Beta Invitation <span class="badge badge-pill badge-primary">Wow!</span></h2>
 
-                    <!-- inline form -->
+<!-- Begin Mailchimp Signup Form -->
+<div id="mc_embed_signup">
+    <form action="https://resumopoly.us7.list-manage.com/subscribe/post?u=ed974cf35b8fc024c08871326&amp;id=0d08f1f4d8" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate form-inline justify-content-center" target="_blank" novalidate>
+            <div id="mce-responses" class="clear">
+                <div class="response" id="mce-error-response" style="display:none"></div>
+                <div class="response alert alert-success" id="mce-success-response" style="display:none"></div>
+            </div>
+            <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+            <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_ed974cf35b8fc024c08871326_0d08f1f4d8" tabindex="-1" value=""></div>
+            <div class="mc-field-group clear">
+                <label class="sr-only" for="mce-EMAIL">Email Address </label>
+                <input type="email" size=20 placeholder=" Your email" value="" name="EMAIL" class="required email" id="mce-EMAIL">
+            </div>
+            
+            <input type="submit" value="Sign Up" name="subscribe" id="mc-embedded-subscribe" class="button">
+    </form>
+</div>
+<script type='text/javascript' src='//s3.amazonaws.com/downloads.mailchimp.com/js/mc-validate.js'></script><script type='text/javascript'>(function($) {window.fnames = new Array(); window.ftypes = new Array();fnames[0]='EMAIL';ftypes[0]='email';fnames[1]='FNAME';ftypes[1]='text';fnames[2]='LNAME';ftypes[2]='text';fnames[3]='ADDRESS';ftypes[3]='address';fnames[4]='PHONE';ftypes[4]='phone';}(jQuery));var $mcj = jQuery.noConflict(true);</script>
 
-                    <!-- <form class="form-inline justify-content-center">
-                    <div class="form-group">
-                    <label class="sr-only" for="email">Email address</label>
-                    <div class="input-group">
-                    <div class="input-group-text">@</div>
-                    <input type="email" class="form-control" id="email" placeholder="Your email">
-
-                    </div>    
-
-
-                    </div>  
-                    <button type="submit" class="btn btn-primary">Sign up</button>      
-
-                    </form> -->
+<!--End mc_embed_signup-->
 
                 </div>
 
@@ -334,7 +338,8 @@ dc.renderAll();
             {% for this_phrase in phrases %}
 
             <tr>
-                <td><a href="{{ url_for('phrase_view', phrase_slug=this_phrase.slug) }}">{{ this_phrase.phrase_text }}</a></td>
+                <!-- <td><a href="{{ url_for('phrase_view', phrase_slug=this_phrase.slug) }}">{{ this_phrase.phrase_text }}</a></td> -->
+                <td>{{ this_phrase.phrase_text }}</td>
                 <td>{{ this_phrase.search_count }} </td>
                 <td>{{ this_phrase.updated_date.strftime('%x') if this_phrase.updated_date else this_phrase.created_date.strftime('%x') if this_phrase.created_date }} </td>
                 <td>{{ '{:,.0f}'.format(this_phrase.jobs_count) if this_phrase.jobs_count }} </td>
@@ -365,7 +370,8 @@ dc.renderAll();
             {% for this_phrase in my_phrases %}
 
             <tr>
-                <td><a href="{{ url_for('phrase_view', phrase_slug=this_phrase.phrase.slug) }}">{{ this_phrase.phrase.phrase_text }}</a></td>
+                <!-- <td><a href="{{ url_for('phrase_view', phrase_slug=this_phrase.phrase.slug) }}">{{ this_phrase.phrase.phrase_text }}</a></td> -->
+                <td>{{ this_phrase.phrase.phrase_text }}</td>
                 <td>{{ this_phrase.phrase.search_count }} </td>
                 <td>{{ this_phrase.phrase.created_date }} </td>
                 <td>{{ this_phrase.phrase.updated_date }} </td>
