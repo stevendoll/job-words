@@ -10,7 +10,7 @@ from config import basedir
 
 app.config.from_object(TestConfig)
 
-from app.models import User, Role, Phrase, Document, DocumentPhrase, UserPhrase, Finding
+from app.models import User, Role, Phrase, Document, DocumentPhrase, Cluster, ClusterPhrase, UserPhrase, Finding
 
 
 class StartupCase(unittest.TestCase):
@@ -1079,72 +1079,73 @@ class DocumentCase(unittest.TestCase):
         self.assertNotIn('"meanSalary": 85000', str(response.data))
         self.assertIn('"meanSalary": 95000', str(response.data))
 
-# class ClusterCase(unittest.TestCase):
-#     def setUp(self):
-#         UserCase.setUp(self)
+class ClusterCase(unittest.TestCase):
+    def setUp(self):
+        UserCase.setUp(self)
 
-#         # create users
-#         u1 = User(username='mary', email='mary@example.com')
-#         u1.set_password('marypassword')
-#         db.session.add_all([u1])
+        # create users
+        u1 = User(email='mary@example.com')
+        u1.set_password('marypassword')
+        db.session.add_all([u1])
 
-#         # create phrases
-#         c1 = Cluster(title='programming', slug='programming-languages', user=u1)
-#         c2 = Cluster(title='pink collar', slug='pink-collar')
-#         db.session.add_all([pg1, pg2])
+        # create phrases
+        c1 = Cluster(title='programming', slug='programming-languages')
+        c2 = Cluster(title='pink collar', slug='pink-collar')
+        db.session.add_all([c1, c2])
 
-#         # create phrases
-#         p1 = Phrase(phrase_text='java', slug='java')
-#         p2 = Phrase(phrase_text='python', slug='python')
-#         p3 = Phrase(phrase_text='node', slug='node')
-#         p4 = Phrase(phrase_text='elementary school', slug='elementary-school')
-#         p5 = Phrase(phrase_text='collaborate', slug='collaborate')
-#         p6 = Phrase(phrase_text='pediatrician', slug='pediatrician')
-#         db.session.add_all([p1, p2, p3, p4, p5, p6])
+        # create phrases
+        p1 = Phrase(phrase_text='java', slug='java')
+        p2 = Phrase(phrase_text='python', slug='python')
+        p3 = Phrase(phrase_text='node', slug='node')
+        p4 = Phrase(phrase_text='elementary school', slug='elementary-school')
+        p5 = Phrase(phrase_text='collaborate', slug='collaborate')
+        p6 = Phrase(phrase_text='pediatrician', slug='pediatrician')
+        db.session.add_all([p1, p2, p3, p4, p5, p6])
 
-#         # create findings
-#         f1 = Finding(phrase=p1, created_date=dt.datetime(2018,4,1,0,0,0), mean_salary=110000, jobs_count=30000, jobs_above_100k_count=5000)
-#         f2 = Finding(phrase=p2, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=105000, jobs_count=30000, jobs_above_100k_count=5000)
-#         f3 = Finding(phrase=p3, created_date=dt.datetime(2018,8,15,0,0,0), mean_salary=85000, jobs_count=50000, jobs_above_100k_count=6000)
-#         f4 = Finding(phrase=p3, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=95000, jobs_count=60000, jobs_above_100k_count=7000)
-#         f5 = Finding(phrase=p4, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=100000, jobs_count=40000, jobs_above_100k_count=7000)
-#         f6 = Finding(phrase=p5, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=60000, jobs_count=5, jobs_above_100k_count=1)
-#         db.session.add_all([f1, f2, f3, f4, f5, f6])
+        # create findings
+        f1 = Finding(phrase=p1, created_date=dt.datetime(2018,4,1,0,0,0), mean_salary=110000, jobs_count=30000, jobs_above_100k_count=5000)
+        f2 = Finding(phrase=p2, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=105000, jobs_count=30000, jobs_above_100k_count=5000)
+        f3 = Finding(phrase=p3, created_date=dt.datetime(2018,8,15,0,0,0), mean_salary=85000, jobs_count=50000, jobs_above_100k_count=6000)
+        f4 = Finding(phrase=p3, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=95000, jobs_count=60000, jobs_above_100k_count=7000)
+        f5 = Finding(phrase=p4, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=100000, jobs_count=40000, jobs_above_100k_count=7000)
+        f6 = Finding(phrase=p5, created_date=dt.datetime(2019,2,15,0,0,0), mean_salary=60000, jobs_count=5, jobs_above_100k_count=1)
+        db.session.add_all([f1, f2, f3, f4, f5, f6])
 
-#         # associate phrases with users and documents
-#         up1 = DocumentPhrase(user=u1, phrase=p1, document=pg1) # mary programming languages cluster
-#         up2 = DocumentPhrase(user=u1, phrase=p2, document=pg1) # mary programming languages cluster
-#         up3 = DocumentPhrase(user=u1, phrase=p3, document=pg1) # mary programming languages cluster
-#         up4 = DocumentPhrase(phrase=p4, document=pg2) # anon pink collar
-#         up5 = DocumentPhrase(phrase=p5, document=pg2) # anon pink collar
-#         up6 = DocumentPhrase(phrase=p6, document=pg2) # anon pink collar
-#         db.session.add_all([up1, up2, up3, up4, up5, up6])
+        # associate phrases with users and documents
+        cp1 = ClusterPhrase(phrase=p1, cluster=c1) # programming languages cluster
+        cp2 = ClusterPhrase(phrase=p2, cluster=c1) # programming languages cluster
+        cp3 = ClusterPhrase(phrase=p3, cluster=c1) # programming languages cluster
+        cp4 = ClusterPhrase(phrase=p4, cluster=c2) # pink collar
+        cp5 = ClusterPhrase(phrase=p5, cluster=c2) # pink collar
+        cp6 = ClusterPhrase(phrase=p6, cluster=c2) # pink collar
+        db.session.add_all([cp1, cp2, cp3, cp4, cp5, cp6])
 
-#         db.session.commit()
+        db.session.commit()
 
-#     def tearDown(self):
-#         UserCase.tearDown(self)
+    def tearDown(self):
+        UserCase.tearDown(self)
 
-#     def login(self, username, password):
-#         return UserCase.login(self, username, password)
+    def login(self, email, password):
+        return UserCase.login(self, email, password)
 
-#     def logout(self):
-#         return UserCase.logout(self)
+    def logout(self):
+        return UserCase.logout(self)
 
-#     def create_cluster(self, title, body, username=None, password=None):
-#         if username and password:
-#             self.login(username, password)
+    def test_get_cluster(self):
+        # search phrase
+        title = 'programming'
+        cluster_in_db = db.session.query(Cluster).filter_by(title=title).first()
+        self.assertEqual(cluster_in_db.title, title)
 
-#         return self.app.client.post('/documents', data=dict(
-#             title=title,
-#             body=body
-#         ), follow_redirects=True)
+    # def create_cluster(self, title, body, username=None, password=None):
+    #     if username and password:
+    #         self.login(username, password)
 
-#     def test_get_cluster(self):
-#         # search phrase
-#         title = 'programming'
-#         cluster_in_db = db.session.query(Cluster).filter_by(title=title).first()
-#         self.assertEqual(cluster_in_db.title, title)
+    #     return self.app.client.post('/documents', data=dict(
+    #         title=title,
+    #         body=body
+    #     ), follow_redirects=True)
+
 
 
 # class ComparisonCase(unittest.TestCase):

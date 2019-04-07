@@ -6,7 +6,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 import datetime as dt
 import re
 
-from app.models import DocumentPhrase, UserPhrase, Finding
+from app.models import DocumentPhrase, ClusterPhrase, UserPhrase, Finding
 
 PHRASE_MINIMUM_JOBS = 100
 
@@ -18,6 +18,7 @@ class Phrase(db.Model):
     search_count = db.Column(db.Integer, default=1)
     findings = db.relationship("Finding")
     document_phrases = db.relationship("DocumentPhrase")
+    cluster_phrases = db.relationship("ClusterPhrase")
     created_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_date = db.Column(db.DateTime(timezone=True), onupdate=func.now())
 
