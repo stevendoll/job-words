@@ -1,10 +1,26 @@
-from flask import render_template, flash, redirect, url_for, request
+from flask import render_template, flash, redirect, url_for, request, g, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
 import re
 import json
+import time
 from app import app, db
 from app.forms import LoginForm, SignupForm, DocumentForm
 from app.models import User, Role, Phrase, DocumentPhrase, Finding, Document, UserPhrase
+
+@app.before_request
+def before_request():
+  g.start = time.time()
+
+@app.after_request
+def after_request(response):
+    diff = time.time() - g.start
+    if ((response.response) and
+        (200 <= response.status_code < 300) and
+        (response.content_type.startswith('text/html'))):
+        response.set_data(response.get_data().replace(
+            b'__EXECUTION_TIME__', bytes(str(diff), 'utf-8')))
+        app.logger.info("Execution time: %s", diff)
+    return response
 
 # check user authorization
 def roles_accepted(*roles):
@@ -170,7 +186,7 @@ def phrase_list():
         # else:
         #     flash('Searched ' + str(phrase.search_count) + ' times!')
 
-    phrases = Phrase.get_all()
+    phrases = Phrase.get_all(limit=500)
 
     if current_user.is_anonymous:
         my_phrases = None
@@ -272,19 +288,23 @@ def document(slug):
 @app.route("/api/phrases")
 def phrase_list_api():
 
-    # entire market of phrases
-    phrases = Phrase.get_all()
+    start = time.time()
+
+    phrases = Phrase.get_featured()
 
     result = {}
-    phrase_list = []
+    result["phrases"] = Phrase.get_serialized(phrases)
+    result["phraseCount"] = phrases.count()
 
-    for phrase in phrases:
-        phrase_list.append(phrase.serialize())
+    diff = time.time() - start
+    result["executionTime"] = "{:.2f} s".format(diff)
 
-    result["phrases"] = phrase_list
-    result["phraseCount"] = len(phrase_list)
+    response = jsonify(result)
 
-    return json.dumps(result)
+    diff = time.time() - start
+    app.logger.info("API Execution time: %s", "{:.2f} s".format(diff))
+
+    return response
 
 
 @app.route("/api/documents/<slug>/phrases")
