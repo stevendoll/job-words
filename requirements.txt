@@ -41,7 +41,7 @@ python-dateutil==2.6.1
 python-editor==1.0.3
 python-slugify==1.2.4
 pytz==2018.5
-PyYAML==3.13 # compatible w zappa
+PyYAML==5.4 # compatible w zappa
 requests==2.21.0
 requests-file==1.4.3
 requests-ftp==0.3.1
